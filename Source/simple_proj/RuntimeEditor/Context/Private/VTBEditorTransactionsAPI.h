@@ -27,6 +27,7 @@ public:
 	bool Redo();
 	bool CanUndo() const;
 	bool CanRedo() const;
+	bool IsReplaying() const { return bReplaying; }
 
 private:
 	struct FObjectChange

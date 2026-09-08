@@ -4,35 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
-#include "UObject/Interface.h"
+#include "VTBEditorModeInterface.h"
+#include "RuntimeEditor/Selection/VTBSelectionSource.h"
 #include "VTBEditorGameMode.generated.h"
 
-/** Listeners pull a complete selection snapshot after this game-thread notification. */
-DECLARE_MULTICAST_DELEGATE(FVTBSelectionChanged);
-
-/** Shared by GameMode, PlayerController, or another native selection provider. */
-UINTERFACE(MinimalAPI, meta = (CannotImplementInterfaceInBlueprint))
-class UVTBSelectionSource : public UInterface
-{
-	GENERATED_BODY()
-};
-
-class SIMPLE_PROJ_API IVTBSelectionSource
-{
-	GENERATED_BODY()
-
-public:
-	virtual void GetSelectionSnapshot(TArray<TWeakObjectPtr<AActor>>& OutActors) const = 0;
-	virtual FVTBSelectionChanged& OnSelectionChanged() = 0;
-};
-
 UCLASS()
-class SIMPLE_PROJ_API AVTBEditorGameMode : public AGameMode, public IVTBSelectionSource
+class SIMPLE_PROJ_API AVTBEditorGameMode : public AGameMode, public IVTBOWTEditorModeControl, public IVTBSelectionSource
 {
 	GENERATED_BODY()
 
 public:
 	AVTBEditorGameMode();
+	virtual void InitGameState() override;
+
+	virtual void SetEditorState_Implementation(bool bNewState) override;
+	virtual void SetActiveGizmoMode_Implementation(EActiveGizmoMode NewGizmoMode) override;
 
 	UFUNCTION(BlueprintCallable, Category = "VTB Editor|Selection")
 	void SetSelectedActors(const TArray<AActor*>& Actors);
@@ -41,11 +27,15 @@ public:
 	void ClearSelection();
 
 	virtual void GetSelectionSnapshot(TArray<TWeakObjectPtr<AActor>>& OutActors) const override;
-	virtual FVTBSelectionChanged& OnSelectionChanged() override { return SelectionChanged; }
+	virtual FVTBSelectionChanged& OnSelectionChanged() override;
 
 private:
 	UPROPERTY(Transient)
 	TArray<TWeakObjectPtr<AActor>> SelectedActors;
 
 	FVTBSelectionChanged SelectionChanged;
+
+	// Preserve commands received before GameState is created.
+	bool bEditMode = false;
+	EActiveGizmoMode ActiveGizmoMode = EActiveGizmoMode::Transform;
 };

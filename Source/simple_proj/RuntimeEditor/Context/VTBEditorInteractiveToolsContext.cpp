@@ -13,6 +13,7 @@
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
 #include "GameFramework/PlayerController.h"
+#include "RuntimeEditor/Gizmo/VTBEditorTransformGizmo.h"
 #include "InputRouter.h"
 #include "InteractiveGizmoManager.h"
 #include "InteractiveToolManager.h"
@@ -38,11 +39,16 @@ public:
 
 	virtual UWorld* GetCurrentEditingWorld() const override { return EditingWorld.Get(); }
 	virtual void GetCurrentViewState(FViewCameraState& StateOut) const override { StateOut = ViewState; }
-	virtual EToolContextCoordinateSystem GetCurrentCoordinateSystem() const override { return CoordinateSystem; }
+	virtual EToolContextCoordinateSystem GetCurrentCoordinateSystem() const override
+	{
+		return GizmoMode == EToolContextTransformGizmoMode::Scale
+			? EToolContextCoordinateSystem::Local : CoordinateSystem;
+	}
 	virtual EToolContextTransformGizmoMode GetCurrentTransformGizmoMode() const override { return GizmoMode; }
 	virtual FToolContextSnappingConfiguration GetCurrentSnappingSettings() const override { return SnappingSettings; }
 	virtual UMaterialInterface* GetStandardMaterial(EStandardToolContextMaterials MaterialType) const override
 	{
+		(void)MaterialType;
 		return UMaterial::GetDefaultMaterial(MD_Surface);
 	}
 	virtual FViewport* GetHoveredViewport() const override
@@ -55,7 +61,8 @@ public:
 	{
 		StateOut = FToolBuilderState();
 		StateOut.World = EditingWorld.Get();
-		if (const UInteractiveToolsContext* Context = ToolsContext.Get())
+		const UInteractiveToolsContext* Context = ToolsContext.Get();
+		if (Context)
 		{
 			StateOut.ToolManager = Context->ToolManager;
 			StateOut.TargetManager = Context->TargetManager;
@@ -63,13 +70,16 @@ public:
 		}
 		for (const TWeakObjectPtr<AActor>& WeakActor : SelectedActors)
 		{
-			if (AActor* Actor = WeakActor.Get(); Actor && Actor->GetWorld() == StateOut.World)
+			AActor* Actor = WeakActor.Get();
+			if (!IsValid(Actor) || Actor->GetWorld() != StateOut.World)
 			{
-				StateOut.SelectedActors.Add(Actor);
-				if (USceneComponent* Root = Actor->GetRootComponent())
-				{
-					StateOut.SelectedComponents.Add(Root);
-				}
+				continue;
+			}
+
+			StateOut.SelectedActors.Add(Actor);
+			if (USceneComponent* Root = Actor->GetRootComponent(); IsValid(Root))
+			{
+				StateOut.SelectedComponents.Add(Root);
 			}
 		}
 	}
@@ -80,21 +90,30 @@ FVTBEditorQueriesAPI::FVTBEditorQueriesAPI()
 	, EditingWorld(nullptr)
 	, ActiveViewportClient(nullptr)
 	, CoordinateSystem(EToolContextCoordinateSystem::World)
-	, GizmoMode(EToolContextTransformGizmoMode::Combined)
+	, GizmoMode(EToolContextTransformGizmoMode::Translation)
 {
 }
 
 UVTBEditorInteractiveToolsContext::UVTBEditorInteractiveToolsContext()
-	: bRuntimeInitialized(false)
+	: RuntimePhase(EVTBEditorRuntimePhase::Uninitialized)
 	, bCancellingInteraction(false)
+	, bUpdating(false)
 {
 }
 
 bool UVTBEditorInteractiveToolsContext::InitializeRuntime(UWorld* World)
 {
-	if (bRuntimeInitialized)
+	if (RuntimePhase == EVTBEditorRuntimePhase::Ready)
 	{
+		if (!ensureMsgf(QueriesAPI.IsValid(), TEXT("Runtime context is initialized without a queries API.")))
+		{
+			return false;
+		}
 		return QueriesAPI->GetCurrentEditingWorld() == World;
+	}
+	if (RuntimePhase != EVTBEditorRuntimePhase::Uninitialized)
+	{
+		return false;
 	}
 	if (!IsValid(World) || !World->IsGameWorld() || World->GetNetMode() == NM_DedicatedServer)
 	{
@@ -105,7 +124,7 @@ bool UVTBEditorInteractiveToolsContext::InitializeRuntime(UWorld* World)
 	QueriesAPI->EditingWorld = World;
 	TransactionsAPI = MakeShared<FVTBEditorTransactionsAPI>();
 	Super::Initialize(QueriesAPI.Get(), TransactionsAPI.Get());
-	bRuntimeInitialized = true;
+	RuntimePhase = EVTBEditorRuntimePhase::Ready;
 	if (FSlateApplication::IsInitialized())
 	{
 		auto& ActivationChanged = FSlateApplication::Get().OnApplicationActivationStateChanged();
@@ -121,8 +140,13 @@ bool UVTBEditorInteractiveToolsContext::InitializeRuntime(UWorld* World)
 		});
 	}
 	// The stock gizmo manager registers its default builders and creates this view context.
+	if (!ensureMsgf(IsValid(ContextObjectStore), TEXT("Runtime context has no context object store.")))
+	{
+		Shutdown();
+		return false;
+	}
 	GizmoViewContext = ContextObjectStore->FindContext<UGizmoViewContext>();
-	if (!GizmoViewContext)
+	if (!ensureMsgf(IsValid(GizmoViewContext), TEXT("Runtime context failed to create a gizmo view context.")))
 	{
 		Shutdown();
 		return false;
@@ -130,22 +154,58 @@ bool UVTBEditorInteractiveToolsContext::InitializeRuntime(UWorld* World)
 	return true;
 }
 
-bool UVTBEditorInteractiveToolsContext::UpdateView(APlayerController* PlayerController)
+bool UVTBEditorInteractiveToolsContext::IsRuntimeReady() const
 {
-	if (!bRuntimeInitialized)
+	if (RuntimePhase != EVTBEditorRuntimePhase::Ready)
 	{
 		return false;
 	}
+	return IsValid(GizmoManager) && IsValid(InputRouter);
+}
+
+UWorld* UVTBEditorInteractiveToolsContext::GetEditingWorld() const
+{
+	if (!QueriesAPI.IsValid())
+	{
+		return nullptr;
+	}
+	return QueriesAPI->GetCurrentEditingWorld();
+}
+
+EToolContextTransformGizmoMode UVTBEditorInteractiveToolsContext::GetGizmoMode() const
+{
+	if (!ensureMsgf(QueriesAPI.IsValid(), TEXT("Runtime gizmo mode requires a queries API.")))
+	{
+		return EToolContextTransformGizmoMode::NoGizmo;
+	}
+	return QueriesAPI->GetCurrentTransformGizmoMode();
+}
+
+bool UVTBEditorInteractiveToolsContext::UpdateView(APlayerController* PlayerController)
+{
+	if (!IsRuntimeReady())
+	{
+		return false;
+	}
+	if (!ensureMsgf(QueriesAPI.IsValid(), TEXT("Runtime view update requires a queries API.")))
+	{
+		return false;
+	}
+	check(GizmoViewContext);
 	QueriesAPI->ActiveViewportClient.Reset();
 	UWorld* World = QueriesAPI->GetCurrentEditingWorld();
-	if (!IsValid(PlayerController) || PlayerController->GetWorld() != World || !World || !World->Scene)
+	if (!IsValid(PlayerController) || !IsValid(World))
+	{
+		return false;
+	}
+	if (PlayerController->GetWorld() != World || World->Scene == nullptr)
 	{
 		return false;
 	}
 	ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer();
 	UGameViewportClient* ViewportClient = LocalPlayer ? LocalPlayer->ViewportClient : nullptr;
 	FViewport* Viewport = ViewportClient ? ViewportClient->Viewport : nullptr;
-	if (!Viewport || Viewport->GetSizeXY().GetMin() <= 0)
+	if (Viewport == nullptr || Viewport->GetSizeXY().GetMin() <= 0)
 	{
 		return false;
 	}
@@ -155,7 +215,7 @@ bool UVTBEditorInteractiveToolsContext::UpdateView(APlayerController* PlayerCont
 	FVector ViewLocation;
 	FRotator ViewRotation;
 	FSceneView* View = LocalPlayer->CalcSceneView(&ViewFamily, ViewLocation, ViewRotation, Viewport);
-	if (!View || View->UnscaledViewRect.Width() <= 0 || View->UnscaledViewRect.Height() <= 0)
+	if (View == nullptr || View->UnscaledViewRect.Width() <= 0 || View->UnscaledViewRect.Height() <= 0)
 	{
 		return false;
 	}
@@ -179,22 +239,166 @@ bool UVTBEditorInteractiveToolsContext::UpdateView(APlayerController* PlayerCont
 	return true;
 }
 
+bool UVTBEditorInteractiveToolsContext::UpdateView()
+{
+	if (!IsRuntimeReady())
+	{
+		return false;
+	}
+
+	UWorld* World = QueriesAPI->GetCurrentEditingWorld();
+	if (!IsValid(World))
+	{
+		return false;
+	}
+
+	APlayerController* LocalController = nullptr;
+	for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* Candidate = It->Get();
+		if (!IsValid(Candidate) || !Candidate->IsLocalController())
+		{
+			continue;
+		}
+		LocalController = Candidate;
+		break;
+	}
+	return UpdateView(LocalController);
+}
+
+bool UVTBEditorInteractiveToolsContext::PostPointerInput(const FInputDeviceState& Input, bool bHover)
+{
+	if (!BeginRuntimeUpdate())
+	{
+		return false;
+	}
+
+	ON_SCOPE_EXIT
+	{
+		EndRuntimeUpdate();
+	};
+	if (bHover)
+	{
+		InputRouter->PostHoverInputEvent(Input);
+	}
+	else
+	{
+		InputRouter->PostInputEvent(Input);
+	}
+	return true;
+}
+
+UVTBEditorTransformGizmo* UVTBEditorInteractiveToolsContext::CreateTransformGizmo(UObject* Owner)
+{
+	if (IsValid(TransformGizmo))
+	{
+		return TransformGizmo;
+	}
+
+	if (!ensureMsgf(IsValid(Owner), TEXT("Runtime transform gizmo creation requires a valid owner.")))
+	{
+		return nullptr;
+	}
+	if (!ensureMsgf(IsValid(GizmoManager), TEXT("Runtime transform gizmo creation requires an initialized gizmo manager.")))
+	{
+		return nullptr;
+	}
+
+	GizmoBuilder = NewObject<UVTBEditorTransformGizmoBuilder>(GizmoManager);
+	if (!ensureMsgf(IsValid(GizmoBuilder), TEXT("Failed to create the runtime transform gizmo builder.")))
+	{
+		GizmoBuilder = nullptr;
+		return nullptr;
+	}
+	GizmoManager->RegisterGizmoType(UVTBEditorTransformGizmoBuilder::BuilderIdentifier, GizmoBuilder);
+	TransformGizmo = Cast<UVTBEditorTransformGizmo>(GizmoManager->CreateGizmo(
+		UVTBEditorTransformGizmoBuilder::BuilderIdentifier, TEXT("VTB.RuntimeTransform"), Owner));
+	if (!ensureMsgf(IsValid(TransformGizmo), TEXT("Failed to create the runtime transform gizmo.")))
+	{
+		TransformGizmo = nullptr;
+		return nullptr;
+	}
+
+	TransformGizmo->SetVisibility(false);
+	return TransformGizmo;
+}
+
+bool UVTBEditorInteractiveToolsContext::ApplyTransformGizmoState(
+	UObject* Owner,
+	const TOptional<TArray<TWeakObjectPtr<AActor>>>& SelectionRequest)
+{
+	if (!SelectionRequest.IsSet() && !IsValid(TransformGizmo))
+	{
+		return false;
+	}
+
+	if (!BeginRuntimeUpdate())
+	{
+		return false;
+	}
+
+	ON_SCOPE_EXIT
+	{
+		EndRuntimeUpdate();
+	};
+
+	UVTBEditorTransformGizmo* Gizmo = TransformGizmo;
+	if (!IsValid(Gizmo))
+	{
+		Gizmo = CreateTransformGizmo(Owner);
+		if (!IsValid(Gizmo))
+		{
+			return false;
+		}
+	}
+
+	return Gizmo->ApplyRuntimeState(this, GetGizmoMode(), SelectionRequest);
+}
+
+void UVTBEditorInteractiveToolsContext::UpdateTransformGizmoVisibility(bool bHasView)
+{
+	if (!IsValid(TransformGizmo))
+	{
+		return;
+	}
+
+	TransformGizmo->SetVisibility(bHasView && TransformGizmo->ActiveTarget != nullptr);
+}
+
 void UVTBEditorInteractiveToolsContext::TickRuntime(float DeltaTime)
 {
-	if (bRuntimeInitialized)
+	if (!BeginRuntimeUpdate())
 	{
-		ToolManager->Tick(DeltaTime);
-		GizmoManager->Tick(DeltaTime);
+		return;
 	}
+
+	ON_SCOPE_EXIT
+	{
+		EndRuntimeUpdate();
+	};
+
+	check(ToolManager);
+	check(GizmoManager);
+	ToolManager->Tick(DeltaTime);
+	GizmoManager->Tick(DeltaTime);
 }
 
 void UVTBEditorInteractiveToolsContext::Shutdown()
 {
-	if (!bRuntimeInitialized)
+	if (RuntimePhase == EVTBEditorRuntimePhase::Uninitialized
+		|| RuntimePhase == EVTBEditorRuntimePhase::ShuttingDown)
 	{
 		return;
 	}
+	if (bUpdating || bCancellingInteraction || IsReplayingTransaction())
+	{
+		// Transform callbacks can request shutdown while the router or a change is still on the stack.
+		RuntimePhase = EVTBEditorRuntimePhase::ShutdownPending;
+		return;
+	}
+	RuntimePhase = EVTBEditorRuntimePhase::ShuttingDown;
 	CancelActiveInteraction();
+	// Manager shutdown callbacks must not tick or cancel a partially dismantled context.
 	if (FSlateApplication::IsInitialized())
 	{
 		FSlateApplication::Get().OnApplicationActivationStateChanged().Remove(ApplicationFocusHandle);
@@ -207,8 +411,8 @@ void UVTBEditorInteractiveToolsContext::Shutdown()
 	GetObjectsWithOuter(GizmoManager, ManagedObjects);
 	for (UObject* Object : ManagedObjects)
 	{
-		if (UCombinedTransformGizmo* Gizmo = Cast<UCombinedTransformGizmo>(Object);
-			IsValid(Gizmo) && Gizmo->ActiveTarget)
+		UCombinedTransformGizmo* Gizmo = Cast<UCombinedTransformGizmo>(Object);
+		if (IsValid(Gizmo) && Gizmo->ActiveTarget != nullptr)
 		{
 			Gizmo->ClearActiveTarget();
 		}
@@ -216,9 +420,13 @@ void UVTBEditorInteractiveToolsContext::Shutdown()
 	// Dependencies stay alive until all ITF managers finish their shutdown callbacks.
 	Super::Shutdown();
 	GizmoViewContext = nullptr;
-	bRuntimeInitialized = false;
+	TransformGizmo = nullptr;
+	GizmoBuilder = nullptr;
 	TransactionsAPI.Reset();
 	QueriesAPI.Reset();
+	bUpdating = false;
+	bCancellingInteraction = false;
+	RuntimePhase = EVTBEditorRuntimePhase::Uninitialized;
 }
 
 void UVTBEditorInteractiveToolsContext::BeginDestroy()
@@ -229,65 +437,161 @@ void UVTBEditorInteractiveToolsContext::BeginDestroy()
 
 void UVTBEditorInteractiveToolsContext::SetSelection(const TArray<AActor*>& Actors)
 {
-	if (QueriesAPI)
+	if (!QueriesAPI.IsValid())
 	{
-		QueriesAPI->SelectedActors.Reset(Actors.Num());
-		for (AActor* Actor : Actors)
+		return;
+	}
+
+	QueriesAPI->SelectedActors.Reset(Actors.Num());
+	for (AActor* Actor : Actors)
+	{
+		if (IsValid(Actor) && Actor->GetWorld() == QueriesAPI->EditingWorld.Get())
 		{
-			if (IsValid(Actor) && Actor->GetWorld() == QueriesAPI->EditingWorld.Get())
-			{
-				QueriesAPI->SelectedActors.AddUnique(Actor);
-			}
+			QueriesAPI->SelectedActors.AddUnique(Actor);
 		}
 	}
 }
 
 void UVTBEditorInteractiveToolsContext::SetCoordinateSystem(EToolContextCoordinateSystem CoordinateSystem)
 {
-	if (QueriesAPI)
+	if (!QueriesAPI.IsValid())
 	{
-		// CombinedTransformGizmo supports World and Local, not Screen coordinates.
-		QueriesAPI->CoordinateSystem = CoordinateSystem == EToolContextCoordinateSystem::Local
-			? EToolContextCoordinateSystem::Local : EToolContextCoordinateSystem::World;
+		return;
 	}
+
+	// Non-uniform scale is evaluated in local space so the scale handles remain
+	// aligned with the selected actor even when the requested editor space is World.
+	if (QueriesAPI->GizmoMode == EToolContextTransformGizmoMode::Scale)
+	{
+		QueriesAPI->CoordinateSystem = EToolContextCoordinateSystem::Local;
+		return;
+	}
+
+	// CombinedTransformGizmo supports World and Local, not Screen coordinates.
+	QueriesAPI->CoordinateSystem = CoordinateSystem == EToolContextCoordinateSystem::Local
+		? EToolContextCoordinateSystem::Local : EToolContextCoordinateSystem::World;
 }
 
 void UVTBEditorInteractiveToolsContext::SetGizmoMode(EToolContextTransformGizmoMode Mode)
 {
-	if (QueriesAPI)
+	if (!QueriesAPI.IsValid())
 	{
-		QueriesAPI->GizmoMode = Mode;
+		return;
+	}
+
+	QueriesAPI->GizmoMode = Mode;
+	if (Mode == EToolContextTransformGizmoMode::Scale)
+	{
+		QueriesAPI->CoordinateSystem = EToolContextCoordinateSystem::Local;
 	}
 }
 
 void UVTBEditorInteractiveToolsContext::CancelActiveInteraction()
 {
-	if (bRuntimeInitialized && !bCancellingInteraction)
+	if (RuntimePhase == EVTBEditorRuntimePhase::Uninitialized
+		|| RuntimePhase == EVTBEditorRuntimePhase::ShutdownPending
+		|| bCancellingInteraction
+		|| IsReplayingTransaction())
 	{
-		// Proxy callbacks run before ForceTerminateAll clears its active capture pointers.
-		TGuardValue<bool> CancellingGuard(bCancellingInteraction, true);
-		TransactionsAPI->BeginCancellation();
-		InputRouter->ForceTerminateAll();
-		TransactionsAPI->EndCancellation();
+		if (RuntimePhase == EVTBEditorRuntimePhase::ShutdownPending && !bUpdating && !IsReplayingTransaction())
+		{
+			Shutdown();
+		}
+		return;
 	}
+
+	check(TransactionsAPI.IsValid());
+	check(InputRouter);
+	// Proxy callbacks run before ForceTerminateAll clears its active capture pointers.
+	TGuardValue<bool> CancellingGuard(bCancellingInteraction, true);
+	TransactionsAPI->BeginCancellation();
+	InputRouter->ForceTerminateAll();
+	TransactionsAPI->EndCancellation();
+
+	if (RuntimePhase == EVTBEditorRuntimePhase::ShutdownPending)
+	{
+		Shutdown();
+	}
+}
+
+bool UVTBEditorInteractiveToolsContext::BeginRuntimeUpdate()
+{
+	if (!IsRuntimeReady() || bUpdating || bCancellingInteraction || IsReplayingTransaction())
+	{
+		return false;
+	}
+
+	bUpdating = true;
+	return true;
+}
+
+void UVTBEditorInteractiveToolsContext::EndRuntimeUpdate()
+{
+	bUpdating = false;
+	if (RuntimePhase == EVTBEditorRuntimePhase::ShutdownPending)
+	{
+		Shutdown();
+	}
+}
+
+bool UVTBEditorInteractiveToolsContext::HasActiveMouseCapture() const
+{
+	if (!IsValid(InputRouter))
+	{
+		return false;
+	}
+	return InputRouter->HasActiveMouseCapture();
 }
 
 bool UVTBEditorInteractiveToolsContext::Undo()
 {
-	return TransactionsAPI && TransactionsAPI->Undo();
+	if (RuntimePhase == EVTBEditorRuntimePhase::ShuttingDown || !TransactionsAPI.IsValid())
+	{
+		return false;
+	}
+
+	const bool bUndone = TransactionsAPI->Undo();
+	if (RuntimePhase == EVTBEditorRuntimePhase::ShutdownPending)
+	{
+		Shutdown();
+	}
+	return bUndone;
 }
 
 bool UVTBEditorInteractiveToolsContext::Redo()
 {
-	return TransactionsAPI && TransactionsAPI->Redo();
+	if (RuntimePhase == EVTBEditorRuntimePhase::ShuttingDown || !TransactionsAPI.IsValid())
+	{
+		return false;
+	}
+
+	const bool bRedone = TransactionsAPI->Redo();
+	if (RuntimePhase == EVTBEditorRuntimePhase::ShutdownPending)
+	{
+		Shutdown();
+	}
+	return bRedone;
 }
 
 bool UVTBEditorInteractiveToolsContext::CanUndo() const
 {
-	return TransactionsAPI && TransactionsAPI->CanUndo();
+	if (RuntimePhase == EVTBEditorRuntimePhase::ShuttingDown || !TransactionsAPI.IsValid())
+	{
+		return false;
+	}
+	return TransactionsAPI->CanUndo();
 }
 
 bool UVTBEditorInteractiveToolsContext::CanRedo() const
 {
-	return TransactionsAPI && TransactionsAPI->CanRedo();
+	if (RuntimePhase == EVTBEditorRuntimePhase::ShuttingDown || !TransactionsAPI.IsValid())
+	{
+		return false;
+	}
+	return TransactionsAPI->CanRedo();
+}
+
+bool UVTBEditorInteractiveToolsContext::IsReplayingTransaction() const
+{
+	return TransactionsAPI.IsValid() && TransactionsAPI->IsReplaying();
 }

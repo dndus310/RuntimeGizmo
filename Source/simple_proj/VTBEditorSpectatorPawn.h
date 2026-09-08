@@ -9,6 +9,7 @@
 
 class UInputAction;
 class UInputMappingContext;
+class UEnhancedInputLocalPlayerSubsystem;
 class UVTBEditorInteractiveToolsContext;
 
 UCLASS()
@@ -21,16 +22,19 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void UnPossessed() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 private:
 	void StartInput();
 	void StopInput();
-	void UpdatePointer();
+	bool UpdatePointer();
 	void UpdateCameraInputLock();
 	void ResetCameraInputLock();
-	void SendPointer(bool bPressed, bool bDown, bool bReleased);
+	bool SendPointer(bool bPressed, bool bDown, bool bReleased);
+	void PostPointerInput(bool bHover);
+	void CancelPointer();
 	void SelectActor();
 	void SendSelection(AActor* Actor);
 	void SetGizmoMode(EToolContextTransformGizmoMode Mode);
@@ -40,7 +44,8 @@ private:
 	bool IsGizmoCapturingMouse() const;
 
 	void OnSelectStarted();
-	void OnSelectCompleted();
+	void OnSelectCompleted(); 
+	void OnSelectCanceled();
 	void OnTranslationStarted();
 	void OnRotationStarted();
 	void OnScaleStarted();
@@ -87,6 +92,12 @@ private:
 	UPROPERTY(Transient)
 	TWeakObjectPtr<APlayerController> CachedPlayerController;
 
+	UPROPERTY(Transient)
+	TWeakObjectPtr<UEnhancedInputLocalPlayerSubsystem> CachedInputSubsystem;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInputMappingContext> AddedMappingContext;
+
 	UPROPERTY(EditDefaultsOnly, Category = "VTB Editor|Input")
 	int32 EditorInputPriority;
 
@@ -95,4 +106,8 @@ private:
 	EToolContextCoordinateSystem CurrentCoordinateSystem;
 	bool bMoveInputIgnored;
 	bool bLookInputIgnored;
+	bool bHadMouseCursor;
+	bool bHadClickEvents;
+	bool bHadMouseOverEvents;
+	bool bHasPointerPosition;
 };

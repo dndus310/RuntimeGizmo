@@ -36,13 +36,19 @@ void FVTBEditorTransactionsAPI::EndUndoTransaction()
 	{
 		return;
 	}
-	if (--TransactionDepth == 0)
+
+	if (--TransactionDepth != 0)
 	{
-		if (bCancelling)
-		{
-			ApplyTransaction(PendingTransaction, true);
-		}
-		else if (!PendingTransaction.Changes.IsEmpty())
+		return;
+	}
+
+	if (bCancelling)
+	{
+		ApplyTransaction(PendingTransaction, true);
+	}
+	else
+	{
+		if (!PendingTransaction.Changes.IsEmpty())
 		{
 			History.SetNum(HistoryCursor);
 			History.Add(MoveTemp(PendingTransaction));
@@ -52,8 +58,8 @@ void FVTBEditorTransactionsAPI::EndUndoTransaction()
 			}
 			HistoryCursor = History.Num();
 		}
-		PendingTransaction = FTransaction();
 	}
+	PendingTransaction = FTransaction();
 }
 
 void FVTBEditorTransactionsAPI::AppendChange(UObject* TargetObject, TUniquePtr<FToolCommandChange> Change, const FText&)
@@ -109,11 +115,18 @@ FString FVTBEditorTransactionsAPI::GetReferencerName() const
 
 void FVTBEditorTransactionsAPI::BeginCancellation()
 {
-	bCancelling = true;
+	if (!bReplaying)
+	{
+		bCancelling = true;
+	}
 }
 
 void FVTBEditorTransactionsAPI::EndCancellation()
 {
+	if (bReplaying || !bCancelling)
+	{
+		return;
+	}
 	ApplyTransaction(PendingTransaction, true);
 	PendingTransaction = FTransaction();
 	TransactionDepth = 0;
@@ -192,7 +205,11 @@ bool FVTBEditorTransactionsAPI::IsHistoryAvailable() const
 bool FVTBEditorTransactionsAPI::FObjectChange::IsApplicable() const
 {
 	UObject* Object = Target.Get();
-	return Object && Change && !Change->HasExpired(Object);
+	if (!IsValid(Object) || !Change)
+	{
+		return false;
+	}
+	return !Change->HasExpired(Object);
 }
 
 bool FVTBEditorTransactionsAPI::FTransaction::HasApplicableChanges() const

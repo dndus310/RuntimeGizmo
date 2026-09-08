@@ -12,7 +12,6 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "InputCoreTypes.h"
-#include "InputRouter.h"
 
 AVTBEditorSpectatorPawn::AVTBEditorSpectatorPawn()
 	: EditorMappingContext(FSoftObjectPath(TEXT("/Game/RuntimeEditor/Input/IMC_VTBEditor.IMC_VTBEditor")))
@@ -30,6 +29,10 @@ AVTBEditorSpectatorPawn::AVTBEditorSpectatorPawn()
 	, CurrentCoordinateSystem(EToolContextCoordinateSystem::World)
 	, bMoveInputIgnored(false)
 	, bLookInputIgnored(false)
+	, bHadMouseCursor(false)
+	, bHadClickEvents(false)
+	, bHadMouseOverEvents(false)
+	, bHasPointerPosition(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bAddDefaultMovementBindings = false;
@@ -40,7 +43,8 @@ void AVTBEditorSpectatorPawn::BeginPlay()
 	Super::BeginPlay();
 	StartInput();
 	SetGizmoMode(CurrentGizmoMode);
-	if (UVTBEditorInteractiveToolsContext* Context = GetToolsContext())
+	UVTBEditorInteractiveToolsContext* Context = GetToolsContext();
+	if (IsValid(Context))
 	{
 		Context->SetCoordinateSystem(CurrentCoordinateSystem);
 	}
@@ -52,20 +56,38 @@ void AVTBEditorSpectatorPawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
+void AVTBEditorSpectatorPawn::UnPossessed()
+{
+	StopInput();
+	Super::UnPossessed();
+}
+
 void AVTBEditorSpectatorPawn::Tick(float DeltaTime)
 {
-	UpdatePointer();
-	UpdateCameraInputLock();
-	if (UVTBEditorInteractiveToolsContext* Context = GetToolsContext())
-	{
-		if (Context->InputRouter->HasActiveMouseCapture())
-		{
-			SendPointer(false, true, false);
-			return;
-		}
-		Context->InputRouter->PostHoverInputEvent(PointerInput);
-	}
 	Super::Tick(DeltaTime);
+	StartInput();
+	APlayerController* PlayerController = CachedPlayerController.Get();
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	// Focus loss or a mapping rebuild can remove the release event from Enhanced Input.
+	const bool bMouseButtonReleased = PointerInput.Mouse.Left.bDown
+		&& !PlayerController->IsInputKeyDown(EKeys::LeftMouseButton);
+	if (bMouseButtonReleased)
+	{
+		CancelPointer();
+	}
+	if (IsGizmoCapturingMouse())
+	{
+		SendPointer(false, true, false);
+	}
+	else if (UpdatePointer())
+	{
+		PostPointerInput(true);
+	}
+	UpdateCameraInputLock();
 }
 
 void AVTBEditorSpectatorPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -83,6 +105,7 @@ void AVTBEditorSpectatorPawn::SetupPlayerInputComponent(UInputComponent* PlayerI
 	{
 		EnhancedInput->BindAction(Action, ETriggerEvent::Started, this, &ThisClass::OnSelectStarted);
 		EnhancedInput->BindAction(Action, ETriggerEvent::Completed, this, &ThisClass::OnSelectCompleted);
+		EnhancedInput->BindAction(Action, ETriggerEvent::Canceled, this, &ThisClass::OnSelectCanceled);
 	}
 	if (const UInputAction* Action = EditTranslationAction.LoadSynchronous())
 	{
@@ -159,55 +182,76 @@ void AVTBEditorSpectatorPawn::LookCamera(const FVector2D& Axis)
 void AVTBEditorSpectatorPawn::StartInput()
 {
 	APlayerController* PlayerController = GetPlayerController();
-	if (!PlayerController)
+	if (!IsValid(PlayerController) || !PlayerController->IsLocalController())
+	{
+		PlayerController = nullptr;
+	}
+	if (CachedPlayerController.Get() == PlayerController
+		&& (!PlayerController || CachedInputSubsystem.IsValid()))
 	{
 		return;
 	}
-	if (CachedPlayerController.Get() == PlayerController)
-	{
-		return;
-	}
-	if (CachedPlayerController.IsValid())
+	if (CachedPlayerController.Get() != PlayerController)
 	{
 		StopInput();
+		if (!PlayerController)
+		{
+			return;
+		}
+
+		CachedPlayerController = PlayerController;
+		bHadMouseCursor = PlayerController->bShowMouseCursor;
+		bHadClickEvents = PlayerController->bEnableClickEvents;
+		bHadMouseOverEvents = PlayerController->bEnableMouseOverEvents;
+		PlayerController->bShowMouseCursor = true;
+		PlayerController->bEnableClickEvents = true;
+		PlayerController->bEnableMouseOverEvents = true;
 	}
 
-	CachedPlayerController = PlayerController;
-	PlayerController->bShowMouseCursor = true;
-	PlayerController->bEnableClickEvents = true;
-	PlayerController->bEnableMouseOverEvents = true;
-
+	// Possession can precede LocalPlayer input subsystem initialization.
 	ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer();
 	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = LocalPlayer ? LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr;
-	if (const UInputMappingContext* MappingContext = EditorMappingContext.LoadSynchronous())
+	if (InputSubsystem)
 	{
-		if (InputSubsystem)
+		CachedInputSubsystem = InputSubsystem;
+		AddedMappingContext = nullptr;
+		UInputMappingContext* MappingContext = EditorMappingContext.LoadSynchronous();
+		if (IsValid(MappingContext) && !InputSubsystem->HasMappingContext(MappingContext))
 		{
 			InputSubsystem->AddMappingContext(MappingContext, EditorInputPriority);
+			AddedMappingContext = MappingContext;
 		}
 	}
 }
 
 void AVTBEditorSpectatorPawn::StopInput()
 {
-	ResetCameraInputLock();
-
 	APlayerController* PlayerController = CachedPlayerController.Get();
-	ULocalPlayer* LocalPlayer = PlayerController ? PlayerController->GetLocalPlayer() : nullptr;
-	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = LocalPlayer ? LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr;
-	if (const UInputMappingContext* MappingContext = EditorMappingContext.LoadSynchronous())
+	if (PlayerController)
 	{
-		if (InputSubsystem)
+		CancelPointer();
+		PlayerController->bShowMouseCursor = bHadMouseCursor;
+		PlayerController->bEnableClickEvents = bHadClickEvents;
+		PlayerController->bEnableMouseOverEvents = bHadMouseOverEvents;
+	}
+	ResetCameraInputLock();
+	if (UEnhancedInputLocalPlayerSubsystem* InputSubsystem = CachedInputSubsystem.Get())
+	{
+		if (AddedMappingContext)
 		{
-			InputSubsystem->RemoveMappingContext(MappingContext);
+			InputSubsystem->RemoveMappingContext(AddedMappingContext);
 		}
 	}
+	AddedMappingContext = nullptr;
+	CachedInputSubsystem.Reset();
 	CachedPlayerController.Reset();
+	PointerInput = FInputDeviceState();
+	bHasPointerPosition = false;
 }
 
 void AVTBEditorSpectatorPawn::UpdateCameraInputLock()
 {
-	APlayerController* PlayerController = GetPlayerController();
+	APlayerController* PlayerController = CachedPlayerController.Get();
 	if (!PlayerController)
 	{
 		return;
@@ -242,29 +286,31 @@ void AVTBEditorSpectatorPawn::ResetCameraInputLock()
 	bLookInputIgnored = false;
 }
 
-void AVTBEditorSpectatorPawn::UpdatePointer()
+bool AVTBEditorSpectatorPawn::UpdatePointer()
 {
-	APlayerController* PlayerController = GetPlayerController();
+	PointerInput.Mouse.Delta2D = FVector2D::ZeroVector;
+	APlayerController* PlayerController = CachedPlayerController.Get();
 	if (!PlayerController)
 	{
-		return;
+		bHasPointerPosition = false;
+		return false;
 	}
 
 	float MouseX = 0.0f;
 	float MouseY = 0.0f;
-	if (PlayerController->GetMousePosition(MouseX, MouseY))
-	{
-		const FVector2D Position(MouseX, MouseY);
-		PointerInput.Mouse.Delta2D = Position - PointerInput.Mouse.Position2D;
-		PointerInput.Mouse.Position2D = Position;
-	}
-
 	FVector RayOrigin;
 	FVector RayDirection;
-	if (PlayerController->DeprojectMousePositionToWorld(RayOrigin, RayDirection))
+	if (!PlayerController->GetMousePosition(MouseX, MouseY)
+		|| !PlayerController->DeprojectMousePositionToWorld(RayOrigin, RayDirection))
 	{
-		PointerInput.Mouse.WorldRay = FRay(RayOrigin, RayDirection.GetSafeNormal());
+		bHasPointerPosition = false;
+		return false;
 	}
+	const FVector2D Position(MouseX, MouseY);
+	PointerInput.Mouse.Delta2D = bHasPointerPosition ? Position - PointerInput.Mouse.Position2D : FVector2D::ZeroVector;
+	PointerInput.Mouse.Position2D = Position;
+	PointerInput.Mouse.WorldRay = FRay(RayOrigin, RayDirection.GetSafeNormal());
+	bHasPointerPosition = true;
 
 	PointerInput.InputDevice = EInputDevices::Mouse;
 	PointerInput.SetModifierKeyStates(
@@ -272,28 +318,54 @@ void AVTBEditorSpectatorPawn::UpdatePointer()
 		PlayerController->IsInputKeyDown(EKeys::LeftAlt) || PlayerController->IsInputKeyDown(EKeys::RightAlt),
 		PlayerController->IsInputKeyDown(EKeys::LeftControl) || PlayerController->IsInputKeyDown(EKeys::RightControl),
 		PlayerController->IsInputKeyDown(EKeys::LeftCommand) || PlayerController->IsInputKeyDown(EKeys::RightCommand));
+	return true;
 }
 
-void AVTBEditorSpectatorPawn::SendPointer(bool bPressed, bool bDown, bool bReleased)
+bool AVTBEditorSpectatorPawn::SendPointer(bool bPressed, bool bDown, bool bReleased)
 {
-	UpdatePointer();
+	if (!UpdatePointer())
+	{
+		CancelPointer();
+		return false;
+	}
 	PointerInput.Mouse.Left.SetStates(bPressed, bDown, bReleased);
-	if (UVTBEditorInteractiveToolsContext* Context = GetToolsContext())
-	{
-		Context->InputRouter->PostInputEvent(PointerInput);
-	}
+	PostPointerInput(false);
+	// Press/release are edges and must not leak into subsequent hover or drag events.
+	PointerInput.Mouse.Left.bPressed = false;
+	PointerInput.Mouse.Left.bReleased = false;
 	UpdateCameraInputLock();
-	if (bReleased)
+	return true;
+}
+
+void AVTBEditorSpectatorPawn::PostPointerInput(bool bHover)
+{
+	UVTBEditorInteractiveToolsContext* Context = GetToolsContext();
+	if (!IsValid(Context))
 	{
-		PointerInput.Mouse.Left.SetStates(false, false, false);
-		UpdateCameraInputLock();
+		return;
 	}
+
+	// Proxy callbacks may request a different selection while the router still uses the gizmo.
+	Context->PostPointerInput(PointerInput, bHover);
+}
+
+void AVTBEditorSpectatorPawn::CancelPointer()
+{
+	UVTBEditorInteractiveToolsContext* Context = GetToolsContext();
+	if (IsValid(Context) && CachedPlayerController.IsValid())
+	{
+		Context->CancelActiveInteraction();
+	}
+	PointerInput.Mouse.Left.SetStates(false, false, false);
+	PointerInput.Mouse.Delta2D = FVector2D::ZeroVector;
+	bHasPointerPosition = false;
+	ResetCameraInputLock();
 }
 
 void AVTBEditorSpectatorPawn::SelectActor()
 {
 	APlayerController* PlayerController = GetPlayerController();
-	if (!PlayerController)
+	if (!IsValid(PlayerController))
 	{
 		SendSelection(nullptr);
 		return;
@@ -317,14 +389,17 @@ void AVTBEditorSpectatorPawn::SendSelection(AActor* Actor)
 	}
 
 	UWorld* World = GetWorld();
-	AVTBEditorGameMode* GameMode = World ? World->GetAuthGameMode<AVTBEditorGameMode>() : nullptr;
-	if (GameMode)
+	if (!IsValid(World))
+	{
+		return;
+	}
+	if (AVTBEditorGameMode* GameMode = World->GetAuthGameMode<AVTBEditorGameMode>(); IsValid(GameMode))
 	{
 		GameMode->SetSelectedActors(Actors);
 		return;
 	}
 
-	if (UVTBEditorSubsystem* Subsystem = World ? World->GetSubsystem<UVTBEditorSubsystem>() : nullptr)
+	if (UVTBEditorSubsystem* Subsystem = World->GetSubsystem<UVTBEditorSubsystem>(); IsValid(Subsystem))
 	{
 		TArray<TWeakObjectPtr<AActor>> WeakActors;
 		if (IsValid(Actor))
@@ -341,35 +416,37 @@ void AVTBEditorSpectatorPawn::SetGizmoMode(EToolContextTransformGizmoMode Mode)
 	if (UVTBEditorInteractiveToolsContext* Context = GetToolsContext())
 	{
 		Context->SetGizmoMode(CurrentGizmoMode);
+		Context->SetCoordinateSystem(CurrentCoordinateSystem);
 	}
 }
 
 bool AVTBEditorSpectatorPawn::IsCameraNavigating() const
 {
 	const APlayerController* PlayerController = GetPlayerController();
-	return PlayerController
-		&& PlayerController->IsInputKeyDown(EKeys::RightMouseButton)
+	if (!IsValid(PlayerController))
+	{
+		return false;
+	}
+
+	return PlayerController->IsInputKeyDown(EKeys::RightMouseButton)
 		&& !PlayerController->IsInputKeyDown(EKeys::LeftMouseButton);
 }
 
 bool AVTBEditorSpectatorPawn::IsGizmoCapturingMouse() const
 {
-	if (UVTBEditorInteractiveToolsContext* Context = GetToolsContext())
+	UVTBEditorInteractiveToolsContext* Context = GetToolsContext();
+	if (!IsValid(Context))
 	{
-		return Context->InputRouter->HasActiveMouseCapture();
+		return false;
 	}
-	return false;
+	return Context->HasActiveMouseCapture();
 }
 
 void AVTBEditorSpectatorPawn::OnSelectStarted()
 {
-	SendPointer(true, true, false);
-	if (UVTBEditorInteractiveToolsContext* Context = GetToolsContext())
+	if (!SendPointer(true, true, false) || IsGizmoCapturingMouse())
 	{
-		if (Context->InputRouter->HasActiveMouseCapture())
-		{
-			return;
-		}
+		return;
 	}
 	SelectActor();
 }
@@ -377,6 +454,11 @@ void AVTBEditorSpectatorPawn::OnSelectStarted()
 void AVTBEditorSpectatorPawn::OnSelectCompleted()
 {
 	SendPointer(false, false, true);
+}
+
+void AVTBEditorSpectatorPawn::OnSelectCanceled()
+{
+	CancelPointer();
 }
 
 void AVTBEditorSpectatorPawn::OnTranslationStarted()
@@ -428,16 +510,17 @@ void AVTBEditorSpectatorPawn::OnGizmoModeStarted()
 
 void AVTBEditorSpectatorPawn::OnSelectCancelStarted()
 {
-	if (UVTBEditorInteractiveToolsContext* Context = GetToolsContext())
-	{
-		Context->CancelActiveInteraction();
-	}
+	CancelPointer();
 	SendSelection(nullptr);
 }
 
 void AVTBEditorSpectatorPawn::OnSpaceStarted()
 {
 	if (IsCameraNavigating() || IsGizmoCapturingMouse())
+	{
+		return;
+	}
+	if (CurrentGizmoMode == EToolContextTransformGizmoMode::Scale)
 	{
 		return;
 	}
@@ -467,6 +550,15 @@ APlayerController* AVTBEditorSpectatorPawn::GetPlayerController() const
 UVTBEditorInteractiveToolsContext* AVTBEditorSpectatorPawn::GetToolsContext() const
 {
 	UWorld* World = GetWorld();
-	UVTBEditorSubsystem* Subsystem = World ? World->GetSubsystem<UVTBEditorSubsystem>() : nullptr;
-	return Subsystem ? Subsystem->ToolsContext : nullptr;
+	if (!IsValid(World))
+	{
+		return nullptr;
+	}
+
+	UVTBEditorSubsystem* Subsystem = World->GetSubsystem<UVTBEditorSubsystem>();
+	if (!IsValid(Subsystem))
+	{
+		return nullptr;
+	}
+	return Subsystem->GetRuntimeContext();
 }
