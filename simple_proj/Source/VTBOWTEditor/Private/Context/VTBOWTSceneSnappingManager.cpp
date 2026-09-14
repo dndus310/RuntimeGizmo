@@ -1,7 +1,7 @@
-#include "Context/OWTGridSnappingManager.h"
+#include "Context/VTBOWTSceneSnappingManager.h"
 #include "Context/VTBOWTEditorToolsContext.h"
 
-bool UOWTGridSnappingManager::ExecuteSceneSnapQuery(const FSceneSnapQueryRequest& Request,
+bool UVTBOWTSceneSnappingManager::ExecuteSceneSnapQuery(const FSceneSnapQueryRequest& Request,
                                                     TArray<FSceneSnapQueryResult>& ResultsOut) const
 {
 	if (Request.RequestType != ESceneSnapQueryType::Position ||

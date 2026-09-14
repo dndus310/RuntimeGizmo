@@ -1,4 +1,4 @@
-#include "Modes/OWTObjectEditMode.h"
+#include "Modes/VTBOWTObjectEditMode.h"
 #include "VTBOWTEditorSubsystem.h"
 #include "UObject/StructOnScope.h"
 #include "UObject/UnrealType.h"
@@ -51,11 +51,11 @@ FStructProperty* FindContextParameter(UFunction* Function, const UScriptStruct* 
 }
 } // namespace
 
-UOWTObjectEditMode::UOWTObjectEditMode() : ContextHandlers(), bContextBindingsInitialized(false)
+UVTBOWTObjectEditMode::UVTBOWTObjectEditMode() : ContextHandlers(), bContextBindingsInitialized(false)
 {
 }
 
-bool UOWTObjectEditMode::ReceiveEditContext_Implementation(const FInstancedStruct& Context)
+bool UVTBOWTObjectEditMode::ReceiveEditContext_Implementation(const FInstancedStruct& Context)
 {
 	check(IsInGameThread());
 
@@ -77,23 +77,23 @@ bool UOWTObjectEditMode::ReceiveEditContext_Implementation(const FInstancedStruc
 	return true;
 }
 
-void UOWTObjectEditMode::InitializeContextBindings_Implementation()
+void UVTBOWTObjectEditMode::InitializeContextBindings_Implementation()
 {
-	BindContext<FOWTSelectObjectContext>(this, GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, SelectObject));
-	BindContext<FOWTUndoContext>(this, GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, Undo));
-	BindContext<FOWTRedoContext>(this, GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, Redo));
+	BindContext<FOWTSelectObjectContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, SelectObject));
+	BindContext<FOWTUndoContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, Undo));
+	BindContext<FOWTRedoContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, Redo));
 	BindContext<FOWTToggleCoordinateSystemContext>(
-	    this, GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, ToggleCoordinateSystem));
+	    this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, ToggleCoordinateSystem));
 	BindContext<FOWTToggleTransformSplineContext>(this,
-	                                              GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, ToggleTransformSpline));
-	BindContext<FOWTSetTranslationContext>(this, GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, SetTranslation));
-	BindContext<FOWTSetRotationContext>(this, GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, SetRotation));
-	BindContext<FOWTSetScaleContext>(this, GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, SetScale));
-	BindContext<FOWTHideSelectionGizmoContext>(this, GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, HideSelectionGizmo));
-	BindContext<FOWTDuplicateSelectionContext>(this, GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, DuplicateSelection));
+	                                              GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, ToggleTransformSpline));
+	BindContext<FOWTSetTranslationContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, SetTranslation));
+	BindContext<FOWTSetRotationContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, SetRotation));
+	BindContext<FOWTSetScaleContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, SetScale));
+	BindContext<FOWTHideSelectionGizmoContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, HideSelectionGizmo));
+	BindContext<FOWTDuplicateSelectionContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, DuplicateSelection));
 }
 
-bool UOWTObjectEditMode::BindContextHandler(UScriptStruct* ContextType, UObject* Receiver, FName FunctionName)
+bool UVTBOWTObjectEditMode::BindContextHandler(UScriptStruct* ContextType, UObject* Receiver, FName FunctionName)
 {
 	check(IsInGameThread());
 
@@ -116,7 +116,7 @@ bool UOWTObjectEditMode::BindContextHandler(UScriptStruct* ContextType, UObject*
 	return true;
 }
 
-void UOWTObjectEditMode::SelectObject_Implementation(const FOWTSelectObjectContext& Context)
+void UVTBOWTObjectEditMode::SelectObject_Implementation(const FOWTSelectObjectContext& Context)
 {
 	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
 	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
@@ -127,15 +127,15 @@ void UOWTObjectEditMode::SelectObject_Implementation(const FOWTSelectObjectConte
 	Subsystem->SetSelectedObject(Context.SelectedObject.Get());
 }
 
-void UOWTObjectEditMode::Undo_Implementation(const FOWTUndoContext& Context)
+void UVTBOWTObjectEditMode::Undo_Implementation(const FOWTUndoContext& Context)
 {
 }
 
-void UOWTObjectEditMode::Redo_Implementation(const FOWTRedoContext& Context)
+void UVTBOWTObjectEditMode::Redo_Implementation(const FOWTRedoContext& Context)
 {
 }
 
-void UOWTObjectEditMode::ToggleCoordinateSystem_Implementation(const FOWTToggleCoordinateSystemContext& Context)
+void UVTBOWTObjectEditMode::ToggleCoordinateSystem_Implementation(const FOWTToggleCoordinateSystemContext& Context)
 {
 	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
 	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
@@ -148,15 +148,15 @@ void UOWTObjectEditMode::ToggleCoordinateSystem_Implementation(const FOWTToggleC
 	                                   : EToolContextCoordinateSystem::World);
 }
 
-void UOWTObjectEditMode::ToggleTransformSpline_Implementation(const FOWTToggleTransformSplineContext& Context)
+void UVTBOWTObjectEditMode::ToggleTransformSpline_Implementation(const FOWTToggleTransformSplineContext& Context)
 {
 }
 
-void UOWTObjectEditMode::DuplicateSelection_Implementation(const FOWTDuplicateSelectionContext& Context)
+void UVTBOWTObjectEditMode::DuplicateSelection_Implementation(const FOWTDuplicateSelectionContext& Context)
 {
 }
 
-void UOWTObjectEditMode::HideSelectionGizmo_Implementation(const FOWTHideSelectionGizmoContext& Context)
+void UVTBOWTObjectEditMode::HideSelectionGizmo_Implementation(const FOWTHideSelectionGizmoContext& Context)
 {
 	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
 	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
@@ -167,7 +167,7 @@ void UOWTObjectEditMode::HideSelectionGizmo_Implementation(const FOWTHideSelecti
 	Subsystem->HideSelectionGizmo();
 }
 
-bool UOWTObjectEditMode::UnbindContextHandler(UScriptStruct* ContextType)
+bool UVTBOWTObjectEditMode::UnbindContextHandler(UScriptStruct* ContextType)
 {
 	check(IsInGameThread());
 
@@ -182,7 +182,7 @@ bool UOWTObjectEditMode::UnbindContextHandler(UScriptStruct* ContextType)
 	return RemovedCount > 0;
 }
 
-void UOWTObjectEditMode::SetTranslation_Implementation(const FOWTSetTranslationContext& Context)
+void UVTBOWTObjectEditMode::SetTranslation_Implementation(const FOWTSetTranslationContext& Context)
 {
 	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
 	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
@@ -193,7 +193,7 @@ void UOWTObjectEditMode::SetTranslation_Implementation(const FOWTSetTranslationC
 	Subsystem->SetTransformGizmoMode(EToolContextTransformGizmoMode::Translation);
 }
 
-void UOWTObjectEditMode::SetRotation_Implementation(const FOWTSetRotationContext& Context)
+void UVTBOWTObjectEditMode::SetRotation_Implementation(const FOWTSetRotationContext& Context)
 {
 	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
 	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
@@ -204,7 +204,7 @@ void UOWTObjectEditMode::SetRotation_Implementation(const FOWTSetRotationContext
 	Subsystem->SetTransformGizmoMode(EToolContextTransformGizmoMode::Rotation);
 }
 
-void UOWTObjectEditMode::SetScale_Implementation(const FOWTSetScaleContext& Context)
+void UVTBOWTObjectEditMode::SetScale_Implementation(const FOWTSetScaleContext& Context)
 {
 	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
 	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
@@ -215,7 +215,7 @@ void UOWTObjectEditMode::SetScale_Implementation(const FOWTSetScaleContext& Cont
 	Subsystem->SetTransformGizmoMode(EToolContextTransformGizmoMode::Scale);
 }
 
-void UOWTObjectEditMode::EnsureContextBindings()
+void UVTBOWTObjectEditMode::EnsureContextBindings()
 {
 	// The public entry point has already checked the game thread.
 	if (bContextBindingsInitialized)
@@ -227,7 +227,7 @@ void UOWTObjectEditMode::EnsureContextBindings()
 	InitializeContextBindings();
 }
 
-FOWTResolvedContextHandler UOWTObjectEditMode::ResolveContextHandler(const UScriptStruct* ContextType) const
+FOWTResolvedContextHandler UVTBOWTObjectEditMode::ResolveContextHandler(const UScriptStruct* ContextType) const
 {
 	const FOWTContextHandlerBinding* Found = ContextHandlers.Find(ContextType);
 	if (!Found)
@@ -256,7 +256,7 @@ FOWTResolvedContextHandler UOWTObjectEditMode::ResolveContextHandler(const UScri
 	return FOWTResolvedContextHandler(Receiver, Function, Parameter);
 }
 
-void UOWTObjectEditMode::InvokeContextHandler(const FInstancedStruct& Context,
+void UVTBOWTObjectEditMode::InvokeContextHandler(const FInstancedStruct& Context,
                                               const FOWTResolvedContextHandler& Handler) const
 {
 	FStructOnScope Parameters(Handler.Function);

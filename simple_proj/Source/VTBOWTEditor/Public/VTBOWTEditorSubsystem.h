@@ -50,6 +50,7 @@ public:
 	void SetSelectedObject(AActor* Actor);
 	void SetCoordinateSystem(EToolContextCoordinateSystem System);
 	void SetTransformGizmoMode(EToolContextTransformGizmoMode Mode);
+	
 	UVTBOWTEditorToolsContext* GetToolsContext() const;
 	UCombinedTransformGizmo* GetTransformGizmo() const;
 	UTransformProxy* GetTransformProxy() const;

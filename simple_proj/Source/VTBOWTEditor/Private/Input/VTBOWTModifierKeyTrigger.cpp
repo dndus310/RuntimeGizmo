@@ -1,12 +1,12 @@
-#include "Input/OWTModifierKeyTrigger.h"
+#include "Input/VTBOWTModifierKeyTrigger.h"
 #include "EnhancedPlayerInput.h"
 #include "InputCoreTypes.h"
 
-UOWTModifierKeyTrigger::UOWTModifierKeyTrigger() : bRequireControl(false), bRequireShift(false), bDisallowShift(false)
+UVTBOWTModifierKeyTrigger::UVTBOWTModifierKeyTrigger() : bRequireControl(false), bRequireShift(false), bDisallowShift(false)
 {
 }
 
-ETriggerState UOWTModifierKeyTrigger::UpdateState_Implementation(const UEnhancedPlayerInput* PlayerInput,
+ETriggerState UVTBOWTModifierKeyTrigger::UpdateState_Implementation(const UEnhancedPlayerInput* PlayerInput,
                                                                  FInputActionValue ModifiedValue, float DeltaTime)
 {
 	if (!PlayerInput || !IsActuated(ModifiedValue))

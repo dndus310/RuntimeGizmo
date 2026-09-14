@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Context/OWTEditContexts.h"
 #include "Interfaces/OWTEditContextReceiver.h"
-#include "OWTObjectEditMode.generated.h"
+#include "VTBOWTObjectEditMode.generated.h"
 
 struct FOWTResolvedContextHandler;
 
@@ -30,12 +30,12 @@ public:
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class VTBOWTEDITOR_API UOWTObjectEditMode : public UObject, public IOWTEditContextReceiver
+class VTBOWTEDITOR_API UVTBOWTObjectEditMode : public UObject, public IOWTEditContextReceiver
 {
 	GENERATED_BODY()
 
 public:
-	UOWTObjectEditMode();
+	UVTBOWTObjectEditMode();
 	virtual bool ReceiveEditContext_Implementation(const FInstancedStruct& Context) override;
 
 	// Runs once on first dispatch, after BP construction. Call parent when overriding.

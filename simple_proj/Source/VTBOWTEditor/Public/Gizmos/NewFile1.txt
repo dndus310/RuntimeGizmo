@@ -1,8 +1,0 @@
-﻿IA_Undo
-IA_Redo
-IA_TRSGizmoCoordinate 
-IA_GizmoMode
-IA_GizmoTranslation
-IA_GizmoRotation
-IA_GizmoScale
-IA_SelectCancel

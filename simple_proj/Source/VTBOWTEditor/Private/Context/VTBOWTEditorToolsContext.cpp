@@ -8,7 +8,7 @@
 #include "InteractiveToolChange.h"
 #include "Materials/Material.h"
 #include "VTBOWTEditorSubsystem.h"
-#include "Context/OWTGridSnappingManager.h"
+#include "Context/VTBOWTSceneSnappingManager.h"
 #include "ContextObjectStore.h"
 #include "InputRouter.h"
 
@@ -157,7 +157,7 @@ void UVTBOWTEditorToolsContext::InitializeContext(UVTBOWTEditorSubsystem& Subsys
 	Queries = MakeUnique<FOWTToolsQueries>(*this, Subsystem);
 	Transactions = MakeUnique<FOWTToolsTransactions>();
 	Super::Initialize(Queries.Get(), Transactions.Get());
-	ContextObjectStore->AddContextObject(NewObject<UOWTGridSnappingManager>(this));
+	ContextObjectStore->AddContextObject(NewObject<UVTBOWTSceneSnappingManager>(this));
 	bInitialized = true;
 }
 

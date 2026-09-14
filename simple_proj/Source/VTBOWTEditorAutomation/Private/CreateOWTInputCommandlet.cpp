@@ -11,7 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/FileManager.h"
 
-#include "Input/OWTModifierKeyTrigger.h"
+#include "Input/VTBOWTModifierKeyTrigger.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "InputModifiers.h"
@@ -96,7 +96,7 @@ void Map(UInputMappingContext* IMC, UInputAction* Action, FKey Key, bool Ctrl, b
 	Mapping.Triggers.Add(NewObject<UInputTriggerPressed>(IMC));
 	if (Ctrl || Shift || NoShift)
 	{
-		UOWTModifierKeyTrigger* Modifiers = NewObject<UOWTModifierKeyTrigger>(IMC);
+		UVTBOWTModifierKeyTrigger* Modifiers = NewObject<UVTBOWTModifierKeyTrigger>(IMC);
 		Modifiers->bRequireControl = Ctrl;
 		Modifiers->bRequireShift = Shift;
 		Modifiers->bDisallowShift = NoShift;
@@ -438,7 +438,7 @@ bool Validate(UBlueprint* BP, UInputMappingContext* IMC, const TArray<UInputActi
 		const FInstancedStruct Payload = FInstancedStruct::Make(Extension);
 		bOK &= !Pawn->SendEditContext(Payload);
 		bOK &= !Mode->BindContext<FOWTValidationContext>(Mode, TEXT("MissingHandler"));
-		bOK &= !Mode->BindContext<FOWTValidationContext>(Mode, GET_FUNCTION_NAME_CHECKED(UOWTObjectEditMode, Undo));
+		bOK &= !Mode->BindContext<FOWTValidationContext>(Mode, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, Undo));
 		bOK &= Mode->BindContext<FOWTValidationContext>(
 		    Mode, GET_FUNCTION_NAME_CHECKED(UOWTInputValidationMode, HandleValidation));
 		bOK &= Pawn->SendEditContext(Payload) && Mode->ValidationCount == 1 &&
@@ -554,7 +554,7 @@ bool Validate(UBlueprint* BP, UInputMappingContext* IMC, const TArray<UInputActi
 				PlayerInput->SetHeld(EKeys::RightShift, Shift && Side == 1);
 				for (UInputTrigger* Trigger : Mapping.Triggers)
 				{
-					if (UOWTModifierKeyTrigger* Modifiers = Cast<UOWTModifierKeyTrigger>(Trigger))
+					if (UVTBOWTModifierKeyTrigger* Modifiers = Cast<UVTBOWTModifierKeyTrigger>(Trigger))
 					{
 						const bool Expected = (!Modifiers->bRequireControl || Ctrl) &&
 						                      (!Modifiers->bRequireShift || Shift) &&

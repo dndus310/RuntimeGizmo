@@ -18,7 +18,7 @@
 #include "InteractiveGizmoManager.h"
 #include "InteractiveToolManager.h"
 
-#include "Modes/OWTObjectEditMode.h"
+#include "Modes/VTBOWTObjectEditMode.h"
 #include "SceneView.h"
 
 UVTBOWTEditorSubsystem::UVTBOWTEditorSubsystem()
@@ -31,7 +31,7 @@ UVTBOWTEditorSubsystem::UVTBOWTEditorSubsystem()
 void UVTBOWTEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	ActiveEditMode = NewObject<UOWTObjectEditMode>(this);
+	ActiveEditMode = NewObject<UVTBOWTObjectEditMode>(this);
 	SystemContextHandlers.Add(FOWTToggleEditingContext::StaticStruct(),
 	                          [this](const FInstancedStruct&)
 	                          {

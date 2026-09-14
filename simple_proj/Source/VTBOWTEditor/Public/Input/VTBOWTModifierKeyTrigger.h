@@ -2,18 +2,18 @@
 
 #include "CoreMinimal.h"
 #include "InputTriggers.h"
-#include "OWTModifierKeyTrigger.generated.h"
+#include "VTBOWTModifierKeyTrigger.generated.h"
 
 class UEnhancedPlayerInput;
 
 // Used alongside Pressed on individual IMC mappings, never by the editing system.
 UCLASS(meta = (DisplayName = "OWT Modifier Keys"))
-class VTBOWTEDITOR_API UOWTModifierKeyTrigger : public UInputTrigger
+class VTBOWTEDITOR_API UVTBOWTModifierKeyTrigger : public UInputTrigger
 {
 	GENERATED_BODY()
 
 public:
-	UOWTModifierKeyTrigger();
+	UVTBOWTModifierKeyTrigger();
 
 	virtual ETriggerState UpdateState_Implementation(const UEnhancedPlayerInput* PlayerInput,
 	                                                 FInputActionValue ModifiedValue, float DeltaTime) override;

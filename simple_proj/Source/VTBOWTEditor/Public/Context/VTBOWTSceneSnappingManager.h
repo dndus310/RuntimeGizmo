@@ -1,11 +1,11 @@
 #pragma once
 
 #include "SceneQueries/SceneSnappingManager.h"
-#include "OWTGridSnappingManager.generated.h"
+#include "VTBOWTSceneSnappingManager.generated.h"
 
 // Runtime grid queries used by CombinedTransformGizmo's translation parameter sources.
 UCLASS()
-class VTBOWTEDITOR_API UOWTGridSnappingManager : public USceneSnappingManager
+class VTBOWTEDITOR_API UVTBOWTSceneSnappingManager : public USceneSnappingManager
 {
 	GENERATED_BODY()
 

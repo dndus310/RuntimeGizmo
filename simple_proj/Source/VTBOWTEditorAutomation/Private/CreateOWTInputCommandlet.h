@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Commandlets/Commandlet.h"
-#include "Modes/OWTObjectEditMode.h"
+#include "Modes/VTBOWTObjectEditMode.h"
 #include "EnhancedPlayerInput.h"
 #include "CreateOWTInputCommandlet.generated.h"
 
@@ -35,7 +35,7 @@ public:
 };
 
 UCLASS(Transient)
-class UOWTInputValidationMode : public UOWTObjectEditMode
+class UOWTInputValidationMode : public UVTBOWTObjectEditMode
 {
 	GENERATED_BODY()
 
