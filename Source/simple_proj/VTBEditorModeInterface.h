@@ -12,7 +12,6 @@ enum class EActiveGizmoMode : uint8
 	Count UMETA(Hidden)
 };
 
-/** Commands handled by the authoritative GameMode. */
 UINTERFACE(BlueprintType)
 class SIMPLE_PROJ_API UVTBOWTEditorModeControl : public UInterface
 {
@@ -31,7 +30,6 @@ public:
 	void SetActiveGizmoMode(EActiveGizmoMode NewGizmoMode);
 };
 
-/** Read the latest state from GameState without depending on its concrete class. */
 UINTERFACE(BlueprintType)
 class SIMPLE_PROJ_API UVTBOWTEditorModeState : public UInterface
 {

@@ -1,15 +1,15 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
 #include "VTBEditorModeInterface.h"
-#include "RuntimeEditor/Selection/VTBSelectionSource.h"
+#include "Selection/VTBOWTEditorSelectionSource.h"
 #include "VTBEditorGameMode.generated.h"
 
+class USceneComponent;
+
 UCLASS()
-class SIMPLE_PROJ_API AVTBEditorGameMode : public AGameMode, public IVTBOWTEditorModeControl, public IVTBSelectionSource
+class SIMPLE_PROJ_API AVTBEditorGameMode : public AGameMode, public IVTBOWTEditorModeControl, public IVTBOWTEditorSelectionSource
 {
 	GENERATED_BODY()
 
@@ -24,18 +24,27 @@ public:
 	void SetSelectedActors(const TArray<AActor*>& Actors);
 
 	UFUNCTION(BlueprintCallable, Category = "VTB Editor|Selection")
+	void SetSelectedComponent(USceneComponent* Component);
+
+	UFUNCTION(BlueprintCallable, Category = "VTB Editor|Selection")
 	void ClearSelection();
 
-	virtual void GetSelectionSnapshot(TArray<TWeakObjectPtr<AActor>>& OutActors) const override;
-	virtual FVTBSelectionChanged& OnSelectionChanged() override;
+	virtual void GetSelection(TArray<TWeakObjectPtr<AActor>>& OutActors) const override;
+	virtual USceneComponent* GetSelectionFrame() const override;
+	virtual FVTBOWTSelectionChanged& OnSelectionChanged() override;
+	virtual bool ApplySelectionChange(const FSelectedObjectsChangeList& Change) override;
 
 private:
+	void SetSelection(const TArray<AActor*>& Actors, USceneComponent* FrameComponent);
+
 	UPROPERTY(Transient)
 	TArray<TWeakObjectPtr<AActor>> SelectedActors;
 
-	FVTBSelectionChanged SelectionChanged;
+	UPROPERTY(Transient)
+	TWeakObjectPtr<USceneComponent> SelectedFrameComponent;
 
-	// Preserve commands received before GameState is created.
+	FVTBOWTSelectionChanged SelectionChanged;
+
 	bool bEditMode = false;
 	EActiveGizmoMode ActiveGizmoMode = EActiveGizmoMode::Transform;
 };

@@ -1,11 +1,9 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "VTBEditorGameMode.h"
 
 #include "VTBOWTEditGameState.h"
 #include "VTBEditorSpectatorPawn.h"
 #include "VTBOWTEditPlayerController.h"
+#include "Components/SceneComponent.h"
 
 namespace
 {
@@ -63,6 +61,17 @@ void AVTBEditorGameMode::SetActiveGizmoMode_Implementation(EActiveGizmoMode NewG
 
 void AVTBEditorGameMode::SetSelectedActors(const TArray<AActor*>& Actors)
 {
+	SetSelection(Actors, nullptr);
+}
+
+void AVTBEditorGameMode::SetSelectedComponent(USceneComponent* Component)
+{
+	AActor* Actor = IsValid(Component) ? Component->GetOwner() : nullptr;
+	SetSelection({Actor}, Component);
+}
+
+void AVTBEditorGameMode::SetSelection(const TArray<AActor*>& Actors, USceneComponent* FrameComponent)
+{
 	TArray<TWeakObjectPtr<AActor>> NewSelection;
 	for (AActor* Actor : Actors)
 	{
@@ -72,12 +81,15 @@ void AVTBEditorGameMode::SetSelectedActors(const TArray<AActor*>& Actors)
 		}
 	}
 
-	if (SelectedActors == NewSelection)
+	USceneComponent* NewFrame = IsValid(FrameComponent) && NewSelection.Contains(FrameComponent->GetOwner())
+		? FrameComponent : nullptr;
+	if (SelectedActors == NewSelection && SelectedFrameComponent.Get() == NewFrame)
 	{
 		return;
 	}
 
 	SelectedActors = MoveTemp(NewSelection);
+	SelectedFrameComponent = NewFrame;
 	SelectionChanged.Broadcast();
 }
 
@@ -86,7 +98,7 @@ void AVTBEditorGameMode::ClearSelection()
 	SetSelectedActors({});
 }
 
-void AVTBEditorGameMode::GetSelectionSnapshot(TArray<TWeakObjectPtr<AActor>>& OutActors) const
+void AVTBEditorGameMode::GetSelection(TArray<TWeakObjectPtr<AActor>>& OutActors) const
 {
 	OutActors.Reset(SelectedActors.Num());
 	for (const TWeakObjectPtr<AActor>& Actor : SelectedActors)
@@ -98,7 +110,65 @@ void AVTBEditorGameMode::GetSelectionSnapshot(TArray<TWeakObjectPtr<AActor>>& Ou
 	}
 }
 
-FVTBSelectionChanged& AVTBEditorGameMode::OnSelectionChanged()
+FVTBOWTSelectionChanged& AVTBEditorGameMode::OnSelectionChanged()
 {
 	return SelectionChanged;
+}
+
+USceneComponent* AVTBEditorGameMode::GetSelectionFrame() const
+{
+	return SelectedFrameComponent.Get();
+}
+
+bool AVTBEditorGameMode::ApplySelectionChange(const FSelectedObjectsChangeList& Change)
+{
+	TArray<AActor*> Actors;
+	USceneComponent* FrameComponent = nullptr;
+	if (Change.ModificationType == ESelectedObjectsModificationType::Add
+		|| Change.ModificationType == ESelectedObjectsModificationType::Remove)
+	{
+		FrameComponent = SelectedFrameComponent.Get();
+		for (const TWeakObjectPtr<AActor>& Actor : SelectedActors)
+		{
+			Actors.Add(Actor.Get());
+		}
+	}
+	else if (Change.ModificationType != ESelectedObjectsModificationType::Replace
+		&& Change.ModificationType != ESelectedObjectsModificationType::Clear)
+	{
+		return false;
+	}
+	if (Change.ModificationType != ESelectedObjectsModificationType::Clear)
+	{
+		TArray<AActor*> RequestedActors = Change.Actors;
+		for (UActorComponent* Component : Change.Components)
+		{
+			if (IsValid(Component))
+			{
+				AActor* Actor = Component->GetOwner();
+				RequestedActors.Add(Actor);
+				if (Change.ModificationType != ESelectedObjectsModificationType::Remove
+					&& IsValidSelectionActor(Actor, GetWorld()))
+				{
+					if (USceneComponent* SceneComponent = Cast<USceneComponent>(Component))
+					{
+						FrameComponent = SceneComponent;
+					}
+				}
+			}
+		}
+		for (AActor* Actor : RequestedActors)
+		{
+			if (Change.ModificationType == ESelectedObjectsModificationType::Remove)
+			{
+				Actors.Remove(Actor);
+			}
+			else
+			{
+				Actors.Add(Actor);
+			}
+		}
+	}
+	SetSelection(Actors, FrameComponent);
+	return true;
 }

@@ -4,10 +4,13 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
-#include "RuntimeEditor/Context/VTBEditorInteractiveToolsContext.h"
-#include "RuntimeEditor/VTBEditorSubsystem.h"
+#include "Context/VTBOWTEditorToolsContext.h"
+#include "Context/IVTBOWTEditorInput.h"
+#include "Context/IVTBOWTEditorSceneState.h"
+#include "VTBOWTEditorModeSubsystem.h"
 #include "VTBEditorGameMode.h"
 
+#include "Components/PrimitiveComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -26,9 +29,7 @@ AVTBEditorSpectatorPawn::AVTBEditorSpectatorPawn()
 	, CameraLookAction(FSoftObjectPath(TEXT("/Game/RuntimeEditor/Input/IA_CameraLook.IA_CameraLook")))
 	, EditorInputPriority(100)
 	, CurrentGizmoMode(EToolContextTransformGizmoMode::Translation)
-	, CurrentCoordinateSystem(EToolContextCoordinateSystem::World)
-	, bMoveInputIgnored(false)
-	, bLookInputIgnored(false)
+	, bCameraInputIgnored(false)
 	, bHadMouseCursor(false)
 	, bHadClickEvents(false)
 	, bHadMouseOverEvents(false)
@@ -67,7 +68,6 @@ void AVTBEditorSpectatorPawn::Tick(float DeltaTime)
 		return;
 	}
 
-	// Focus loss or a mapping rebuild can remove the release event from Enhanced Input.
 	const bool bMouseButtonReleased = PointerInput.Mouse.Left.bDown
 		&& !PlayerController->IsInputKeyDown(EKeys::LeftMouseButton);
 	if (bMouseButtonReleased)
@@ -203,7 +203,6 @@ void AVTBEditorSpectatorPawn::StartInput()
 		PlayerController->bEnableMouseOverEvents = true;
 	}
 
-	// Possession can precede LocalPlayer input subsystem initialization.
 	ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer();
 	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = LocalPlayer ? LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr;
 	if (InputSubsystem)
@@ -252,33 +251,24 @@ void AVTBEditorSpectatorPawn::UpdateCameraInputLock()
 		return;
 	}
 
-	const bool bBlockMove = IsGizmoCapturingMouse() || PointerInput.Mouse.Left.bDown;
-	const bool bBlockLook = bBlockMove;
-	if (bMoveInputIgnored != bBlockMove)
+	const bool bBlockCamera = IsGizmoCapturingMouse() || PointerInput.Mouse.Left.bDown;
+	if (bCameraInputIgnored != bBlockCamera)
 	{
-		PlayerController->SetIgnoreMoveInput(bBlockMove);
-		bMoveInputIgnored = bBlockMove;
-	}
-	if (bLookInputIgnored != bBlockLook)
-	{
-		PlayerController->SetIgnoreLookInput(bBlockLook);
-		bLookInputIgnored = bBlockLook;
+		PlayerController->SetIgnoreMoveInput(bBlockCamera);
+		PlayerController->SetIgnoreLookInput(bBlockCamera);
+		bCameraInputIgnored = bBlockCamera;
 	}
 }
 
 void AVTBEditorSpectatorPawn::ResetCameraInputLock()
 {
 	APlayerController* PlayerController = CachedPlayerController.Get();
-	if (PlayerController && bMoveInputIgnored)
+	if (PlayerController && bCameraInputIgnored)
 	{
 		PlayerController->SetIgnoreMoveInput(false);
-	}
-	if (PlayerController && bLookInputIgnored)
-	{
 		PlayerController->SetIgnoreLookInput(false);
 	}
-	bMoveInputIgnored = false;
-	bLookInputIgnored = false;
+	bCameraInputIgnored = false;
 }
 
 bool AVTBEditorSpectatorPawn::UpdatePointer()
@@ -325,7 +315,6 @@ bool AVTBEditorSpectatorPawn::SendPointer(bool bPressed, bool bDown, bool bRelea
 	}
 	PointerInput.Mouse.Left.SetStates(bPressed, bDown, bReleased);
 	PostPointerInput(false);
-	// Press/release are edges and must not leak into subsequent hover or drag events.
 	PointerInput.Mouse.Left.bPressed = false;
 	PointerInput.Mouse.Left.bReleased = false;
 	UpdateCameraInputLock();
@@ -334,22 +323,21 @@ bool AVTBEditorSpectatorPawn::SendPointer(bool bPressed, bool bDown, bool bRelea
 
 void AVTBEditorSpectatorPawn::PostPointerInput(bool bHover)
 {
-	UVTBEditorInteractiveToolsContext* Context = GetToolsContext();
+	UVTBOWTEditorToolsContext* Context = GetToolsContext();
 	if (!IsValid(Context))
 	{
 		return;
 	}
 
-	// Proxy callbacks may request a different selection while the router still uses the gizmo.
-	Context->PostPointerInput(PointerInput, bHover);
+	Context->GetInput().PostPointerInput(PointerInput, bHover);
 }
 
 void AVTBEditorSpectatorPawn::CancelPointer()
 {
-	UVTBEditorInteractiveToolsContext* Context = GetToolsContext();
+	UVTBOWTEditorToolsContext* Context = GetToolsContext();
 	if (IsValid(Context) && CachedPlayerController.IsValid())
 	{
-		Context->CancelActiveInteraction();
+		Context->GetInput().CancelActiveInteraction();
 	}
 	PointerInput.Mouse.Left.SetStates(false, false, false);
 	PointerInput.Mouse.Delta2D = FVector2D::ZeroVector;
@@ -369,20 +357,14 @@ void AVTBEditorSpectatorPawn::SelectActor()
 	FHitResult Hit;
 	if (PlayerController->GetHitResultUnderCursor(ECC_Visibility, true, Hit))
 	{
-		SendSelection(Hit.GetActor() == this ? nullptr : Hit.GetActor());
+		SendSelection(Hit.GetActor() == this ? nullptr : Hit.GetComponent());
 		return;
 	}
 	SendSelection(nullptr);
 }
 
-void AVTBEditorSpectatorPawn::SendSelection(AActor* Actor)
+void AVTBEditorSpectatorPawn::SendSelection(USceneComponent* Component)
 {
-	TArray<AActor*> Actors;
-	if (IsValid(Actor))
-	{
-		Actors.Add(Actor);
-	}
-
 	UWorld* World = GetWorld();
 	if (!IsValid(World))
 	{
@@ -390,28 +372,27 @@ void AVTBEditorSpectatorPawn::SendSelection(AActor* Actor)
 	}
 	if (AVTBEditorGameMode* GameMode = World->GetAuthGameMode<AVTBEditorGameMode>(); IsValid(GameMode))
 	{
-		GameMode->SetSelectedActors(Actors);
+		GameMode->SetSelectedComponent(Component);
 		return;
 	}
 
-	if (UVTBEditorSubsystem* Subsystem = World->GetSubsystem<UVTBEditorSubsystem>(); IsValid(Subsystem))
+	if (UVTBOWTEditorModeSubsystem* Subsystem = World->GetSubsystem<UVTBOWTEditorModeSubsystem>(); IsValid(Subsystem))
 	{
 		TArray<TWeakObjectPtr<AActor>> WeakActors;
-		if (IsValid(Actor))
+		if (IsValid(Component))
 		{
-			WeakActors.Add(Actor);
+			WeakActors.Add(Component->GetOwner());
 		}
-		Subsystem->ReceiveSelection(WeakActors);
+		Subsystem->ReceiveSelection(WeakActors, Component);
 	}
 }
 
 void AVTBEditorSpectatorPawn::SetGizmoMode(EToolContextTransformGizmoMode Mode)
 {
 	CurrentGizmoMode = Mode;
-	if (UVTBEditorInteractiveToolsContext* Context = GetToolsContext())
+	if (UVTBOWTEditorToolsContext* Context = GetToolsContext())
 	{
-		Context->SetGizmoMode(CurrentGizmoMode);
-		Context->SetCoordinateSystem(CurrentCoordinateSystem);
+		Context->GetSceneState().SetGizmoMode(CurrentGizmoMode);
 	}
 }
 
@@ -429,12 +410,12 @@ bool AVTBEditorSpectatorPawn::IsCameraNavigating() const
 
 bool AVTBEditorSpectatorPawn::IsGizmoCapturingMouse() const
 {
-	UVTBEditorInteractiveToolsContext* Context = GetToolsContext();
+	UVTBOWTEditorToolsContext* Context = GetToolsContext();
 	if (!IsValid(Context))
 	{
 		return false;
 	}
-	return Context->HasActiveMouseCapture();
+	return Context->GetInput().HasActiveMouseCapture();
 }
 
 void AVTBEditorSpectatorPawn::OnSelectStarted()
@@ -530,11 +511,14 @@ void AVTBEditorSpectatorPawn::OnSpaceStarted()
 	{
 		return;
 	}
-	CurrentCoordinateSystem = CurrentCoordinateSystem == EToolContextCoordinateSystem::World
-		? EToolContextCoordinateSystem::Local : EToolContextCoordinateSystem::World;
-	if (UVTBEditorInteractiveToolsContext* Context = GetToolsContext())
+	if (UVTBOWTEditorToolsContext* Context = GetToolsContext())
 	{
-		Context->SetCoordinateSystem(CurrentCoordinateSystem);
+		if (IToolsContextQueriesAPI* QueriesAPI = Context->GetContextQueriesAPI())
+		{
+			const EToolContextCoordinateSystem CoordinateSystem = QueriesAPI->GetCurrentCoordinateSystem();
+			Context->GetSceneState().SetCoordinateSystem(CoordinateSystem == EToolContextCoordinateSystem::World
+				? EToolContextCoordinateSystem::Local : EToolContextCoordinateSystem::World);
+		}
 	}
 }
 
@@ -553,7 +537,7 @@ APlayerController* AVTBEditorSpectatorPawn::GetPlayerController() const
 	return Cast<APlayerController>(GetController());
 }
 
-UVTBEditorInteractiveToolsContext* AVTBEditorSpectatorPawn::GetToolsContext() const
+UVTBOWTEditorToolsContext* AVTBEditorSpectatorPawn::GetToolsContext() const
 {
 	UWorld* World = GetWorld();
 	if (!IsValid(World))
@@ -561,10 +545,10 @@ UVTBEditorInteractiveToolsContext* AVTBEditorSpectatorPawn::GetToolsContext() co
 		return nullptr;
 	}
 
-	UVTBEditorSubsystem* Subsystem = World->GetSubsystem<UVTBEditorSubsystem>();
+	UVTBOWTEditorModeSubsystem* Subsystem = World->GetSubsystem<UVTBOWTEditorModeSubsystem>();
 	if (!IsValid(Subsystem))
 	{
 		return nullptr;
 	}
-	return Subsystem->GetRuntimeContext();
+	return Subsystem->GetToolsContext();
 }

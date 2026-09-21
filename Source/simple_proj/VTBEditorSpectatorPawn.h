@@ -10,7 +10,8 @@
 class UInputAction;
 class UInputMappingContext;
 class UEnhancedInputLocalPlayerSubsystem;
-class UVTBEditorInteractiveToolsContext;
+class UVTBOWTEditorToolsContext;
+class USceneComponent;
 
 UCLASS()
 class SIMPLE_PROJ_API AVTBEditorSpectatorPawn : public ASpectatorPawn
@@ -36,7 +37,7 @@ private:
 	void PostPointerInput(bool bHover);
 	void CancelPointer();
 	void SelectActor();
-	void SendSelection(AActor* Actor);
+	void SendSelection(USceneComponent* Component);
 	void SetGizmoMode(EToolContextTransformGizmoMode Mode);
 	void MoveCamera(const FVector& Axis);
 	void LookCamera(const FVector2D& Axis);
@@ -56,7 +57,7 @@ private:
 	void OnCameraLookTriggered(const FInputActionValue& Value);
 
 	APlayerController* GetPlayerController() const;
-	UVTBEditorInteractiveToolsContext* GetToolsContext() const;
+	UVTBOWTEditorToolsContext* GetToolsContext() const;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "VTB Editor|Input")
@@ -103,9 +104,7 @@ private:
 
 	FInputDeviceState PointerInput;
 	EToolContextTransformGizmoMode CurrentGizmoMode;
-	EToolContextCoordinateSystem CurrentCoordinateSystem;
-	bool bMoveInputIgnored;
-	bool bLookInputIgnored;
+	bool bCameraInputIgnored;
 	bool bHadMouseCursor;
 	bool bHadClickEvents;
 	bool bHadMouseOverEvents;
