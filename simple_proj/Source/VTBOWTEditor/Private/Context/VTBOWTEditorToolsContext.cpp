@@ -1,206 +1,544 @@
 #include "Context/VTBOWTEditorToolsContext.h"
 
-#include "Camera/PlayerCameraManager.h"
+#include "Context/VTBOWTEditorToolsContextInput.h"
+#include "Context/VTBOWTEditorToolsContextViewport.h"
+#include "Context/VTBOWTEditorTransactionHistory.h"
+#include "Context/IVTBOWTEditorSceneState.h"
+
+#include "BaseGizmos/CombinedTransformGizmo.h"
+#include "Components/ActorComponent.h"
 #include "Components/SceneComponent.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
-#include "GameFramework/PlayerController.h"
+#include "GameFramework/Actor.h"
+#include "InputRouter.h"
+#include "InteractiveGizmoManager.h"
+#include "InteractiveToolManager.h"
 #include "InteractiveToolChange.h"
 #include "Materials/Material.h"
-#include "VTBOWTEditorSubsystem.h"
-#include "Context/VTBOWTSceneSnappingManager.h"
-#include "ContextObjectStore.h"
-#include "InputRouter.h"
+#include "MaterialDomain.h"
+#include "SceneView.h"
+#include "UnrealClient.h"
+#include "UObject/UObjectHash.h"
 
-namespace
-{
-class FOWTToolsQueries : public IToolsContextQueriesAPI
+DEFINE_LOG_CATEGORY_STATIC(LogVTBOWTToolsContext, Log, All);
+
+class FVTBOWTEditorToolsContextRenderImpl final : public IToolsContextRenderAPI
 {
 public:
-	FOWTToolsQueries(UVTBOWTEditorToolsContext& InContext, UVTBOWTEditorSubsystem& InOwner)
-	    : Context(InContext), Owner(InOwner)
+	FVTBOWTEditorToolsContextRenderImpl(UVTBOWTEditorToolsContext& InOwner)
+		: View(nullptr), PDI(nullptr), Owner(InOwner)
 	{
+	}
+
+	virtual FPrimitiveDrawInterface* GetPrimitiveDrawInterface() override
+	{
+		return PDI;
+	}
+	virtual const FSceneView* GetSceneView() override
+	{
+		return View;
+	}
+	virtual FViewCameraState GetCameraState() override
+	{
+		return CameraState;
+	}
+	virtual EViewInteractionState GetViewInteractionState() override
+	{
+		return InteractionState;
+	}
+
+	void UpdateCameraState(const FSceneView* InView, FPrimitiveDrawInterface* InPDI)
+	{
+		View = InView;
+		PDI = InPDI;
+		CameraState = FViewCameraState();
+		CameraState.bIsOrthographic = !View->IsPerspectiveProjection();
+		CameraState.bIsVR = false;
+		CameraState.Position = View->ViewLocation;
+		CameraState.Orientation = View->ViewRotation.Quaternion();
+		CameraState.AspectRatio = View->UnscaledViewRect.Height() > 0
+			? float(View->UnscaledViewRect.Width()) / View->UnscaledViewRect.Height()
+			: 1.0f;
+		const double ProjectionScale = FMath::Abs(View->ViewMatrices.GetProjectionMatrix().M[0][0]);
+		if (ProjectionScale > UE_SMALL_NUMBER)
+		{
+			CameraState.HorizontalFOVDegrees = FMath::RadiansToDegrees(2.0 * FMath::Atan(1.0 / ProjectionScale));
+			CameraState.OrthoWorldCoordinateWidth = float(2.0 / ProjectionScale);
+		}
+		UWorld* World = Owner.GetEditingWorld();
+		UGameViewportClient* GameViewport = World ? World->GetGameViewport() : nullptr;
+		CameraState.DPIScale = GameViewport ? GameViewport->GetDPIScale() : 1.0;
+	}
+	void ResetView()
+	{
+		View = nullptr;
+		PDI = nullptr;
+	}
+
+private:
+	const FSceneView* View;
+	FPrimitiveDrawInterface* PDI;
+	UVTBOWTEditorToolsContext& Owner;
+	FViewCameraState CameraState;
+	EViewInteractionState InteractionState = EViewInteractionState::None;
+};
+
+class FVTBOWTEditorToolsContextQueriesImpl final : public IToolsContextQueriesAPI
+{
+public:
+	explicit FVTBOWTEditorToolsContextQueriesImpl(UVTBOWTEditorToolsContext& InOwner)
+		: Owner(InOwner)
+	{
+	}
+
+	void Initialize(UWorld* InWorld, IToolsContextQueriesAPI* InBackend)
+	{
+		EditingWorld = InWorld;
+		Backend = InBackend;
 	}
 
 	virtual UWorld* GetCurrentEditingWorld() const override
 	{
-		return Owner.GetWorld();
+		return Backend ? Backend->GetCurrentEditingWorld() : EditingWorld.Get();
 	}
-
-	virtual void GetCurrentSelectionState(FToolBuilderState& State) const override
+	virtual void GetCurrentSelectionState(FToolBuilderState& StateOut) const override
 	{
-		State = FToolBuilderState();
-		State.World = Owner.GetWorld();
-		State.ToolManager = Context.ToolManager;
-		State.GizmoManager = Context.GizmoManager;
-		State.TargetManager = Context.TargetManager;
-		if (AActor* Actor = Owner.SelectedObject.Get())
+		if (Backend)
 		{
-			State.SelectedActors.Add(Actor);
-			if (USceneComponent* Root = Actor->GetRootComponent())
+			Backend->GetCurrentSelectionState(StateOut);
+		}
+		else
+		{
+			StateOut = FToolBuilderState();
+			StateOut.World = EditingWorld.Get();
+			for (const TWeakObjectPtr<AActor>& Actor : SelectedActors)
 			{
-				State.SelectedComponents.Add(Root);
+				if (Actor.IsValid() && !Actor->IsActorBeingDestroyed() && Actor->GetWorld() == StateOut.World)
+				{
+					StateOut.SelectedActors.Add(Actor.Get());
+				}
+			}
+			for (const TWeakObjectPtr<UActorComponent>& Component : SelectedComponents)
+			{
+				if (Component.IsValid() && Component->GetWorld() == StateOut.World)
+				{
+					StateOut.SelectedComponents.Add(Component.Get());
+				}
+			}
+		}
+		StateOut.ToolManager = Owner.ToolManager;
+		StateOut.TargetManager = Owner.TargetManager;
+		StateOut.GizmoManager = Owner.GizmoManager;
+	}
+	virtual void GetCurrentViewState(FViewCameraState& StateOut) const override
+	{
+		IToolsContextRenderAPI* RenderAPI = Owner.GetContextRenderAPI();
+		if (Backend && (!RenderAPI || !RenderAPI->GetSceneView()))
+		{
+			Backend->GetCurrentViewState(StateOut);
+			return;
+		}
+		StateOut = RenderAPI ? RenderAPI->GetCameraState() : FViewCameraState();
+	}
+	virtual EToolContextCoordinateSystem GetCurrentCoordinateSystem() const override
+	{
+		if (Backend)
+		{
+			return Backend->GetCurrentCoordinateSystem();
+		}
+		if (GizmoMode == EToolContextTransformGizmoMode::Scale)
+		{
+			return EToolContextCoordinateSystem::Local;
+		}
+		return CoordinateSystem;
+	}
+	virtual EToolContextTransformGizmoMode GetCurrentTransformGizmoMode() const override
+	{
+		return Backend ? Backend->GetCurrentTransformGizmoMode() : GizmoMode;
+	}
+	virtual FToolContextSnappingConfiguration GetCurrentSnappingSettings() const override
+	{
+		if (Backend)
+		{
+			return Backend->GetCurrentSnappingSettings();
+		}
+		FToolContextSnappingConfiguration SnappingSettings;
+		SnappingSettings.bEnablePositionGridSnapping = false;
+		SnappingSettings.PositionGridDimensions = FVector::Zero();
+		SnappingSettings.bEnableRotationGridSnapping = false;
+		SnappingSettings.RotationGridAngles = FRotator::ZeroRotator;
+		SnappingSettings.bEnableScaleGridSnapping = false;
+		SnappingSettings.ScaleGridSize = 1.0f;
+		SnappingSettings.bEnableAbsoluteWorldSnapping = false;
+		return SnappingSettings;
+	}
+	virtual UMaterialInterface* GetStandardMaterial(EStandardToolContextMaterials MaterialType) const override
+	{
+		return Backend ? Backend->GetStandardMaterial(MaterialType) : UMaterial::GetDefaultMaterial(MD_Surface);
+	}
+	virtual FViewport* GetHoveredViewport() const override
+	{
+		if (Backend)
+		{
+			return Backend->GetHoveredViewport();
+		}
+		UWorld* World = EditingWorld.Get();
+		UGameViewportClient* GameViewport = World ? World->GetGameViewport() : nullptr;
+		return GameViewport ? GameViewport->Viewport : nullptr;
+	}
+	virtual FViewport* GetFocusedViewport() const override
+	{
+		return Backend ? Backend->GetFocusedViewport() : GetHoveredViewport();
+	}
+	void SetSelection(const TArray<AActor*>& Actors, const TArray<UActorComponent*>& Components)
+	{
+		SelectedActors.Reset();
+		SelectedComponents.Reset();
+		UWorld* World = GetCurrentEditingWorld();
+		for (AActor* Actor : Actors)
+		{
+			if (IsValid(Actor) && !Actor->IsActorBeingDestroyed() && Actor->GetWorld() == World)
+			{
+				SelectedActors.AddUnique(Actor);
+			}
+		}
+		for (UActorComponent* Component : Components)
+		{
+			if (IsValid(Component) && Component->GetWorld() == World)
+			{
+				SelectedComponents.AddUnique(Component);
 			}
 		}
 	}
 
-	virtual void GetCurrentViewState(FViewCameraState& State) const override
+	UVTBOWTEditorToolsContext& Owner;
+	EToolContextCoordinateSystem CoordinateSystem = EToolContextCoordinateSystem::World;
+	EToolContextTransformGizmoMode GizmoMode = EToolContextTransformGizmoMode::Translation;
+
+private:
+	TWeakObjectPtr<UWorld> EditingWorld;
+	IToolsContextQueriesAPI* Backend = nullptr;
+	TArray<TWeakObjectPtr<AActor>> SelectedActors;
+	TArray<TWeakObjectPtr<UActorComponent>> SelectedComponents;
+};
+
+class FVTBOWTEditorToolsContextTransactionImpl final : public IToolsContextTransactionsAPI
+{
+public:
+	FVTBOWTEditorToolsContextTransactionImpl(UVTBOWTEditorToolsContext& InOwner,
+		IVTBOWTEditorTransactionHistory& InHistory)
+		: Owner(InOwner)
+		, History(InHistory)
 	{
-		APlayerController* Controller = Owner.GetWorld()->GetFirstPlayerController();
-		APlayerCameraManager* Camera = Controller ? Controller->PlayerCameraManager.Get() : nullptr;
-		if (!Camera)
+	}
+
+	void Initialize(IToolsContextTransactionsAPI* InBackend)
+	{
+		Backend = InBackend;
+	}
+
+	virtual void DisplayMessage(const FText& Message, EToolMessageLevel Level) override
+	{
+		if (Backend)
 		{
+			Backend->DisplayMessage(Message, Level);
 			return;
 		}
-
-		const FMinimalViewInfo& View = Camera->GetCameraCacheView();
-		State.Position = View.Location;
-		State.Orientation = View.Rotation.Quaternion();
-		State.HorizontalFOVDegrees = View.FOV;
-		State.AspectRatio = View.AspectRatio;
-		State.OrthoWorldCoordinateWidth = View.OrthoWidth;
-		State.bIsOrthographic = View.ProjectionMode == ECameraProjectionMode::Orthographic;
+		UE_LOG(LogVTBOWTToolsContext, Log, TEXT("ITF message (%d): %s"), static_cast<int32>(Level), *Message.ToString());
+	}
+	virtual void PostInvalidation() override
+	{
+		if (FViewport* Viewport = Owner.GetContextQueriesAPI()->GetFocusedViewport())
+		{
+			Viewport->Invalidate();
+		}
+		if (Backend)
+		{
+			Backend->PostInvalidation();
+		}
+	}
+	virtual void BeginUndoTransaction(const FText& Description) override
+	{
+		if (Backend)
+		{
+			Backend->BeginUndoTransaction(Description);
+			return;
+		}
+		History.BeginUndoTransaction(Description);
+	}
+	virtual void EndUndoTransaction() override
+	{
+		if (Backend)
+		{
+			Backend->EndUndoTransaction();
+			return;
+		}
+		History.EndUndoTransaction();
+	}
+	virtual void AppendChange(UObject* TargetObject, TUniquePtr<FToolCommandChange> Change, const FText& Description) override
+	{
+		if (Backend)
+		{
+			Backend->AppendChange(TargetObject, MoveTemp(Change), Description);
+			return;
+		}
+		History.AppendChange(TargetObject, MoveTemp(Change), Description);
+	}
+	virtual bool RequestSelectionChange(const FSelectedObjectsChangeList& SelectionChange) override
+	{
+		if (Backend)
+		{
+			return Backend->RequestSelectionChange(SelectionChange);
+		}
+		return Owner.OnSelectionChangeRequested.IsBound() && Owner.OnSelectionChangeRequested.Execute(SelectionChange);
 	}
 
-	virtual EToolContextCoordinateSystem GetCurrentCoordinateSystem() const override
+	UVTBOWTEditorToolsContext& Owner;
+
+private:
+	IVTBOWTEditorTransactionHistory& History;
+	IToolsContextTransactionsAPI* Backend = nullptr;
+};
+
+class FVTBOWTEditorSceneState final : public IVTBOWTEditorSceneState
+{
+public:
+	explicit FVTBOWTEditorSceneState(UVTBOWTEditorToolsContext& InOwner)
+		: Owner(InOwner)
 	{
-		return Owner.GetCoordinateSystem();
 	}
 
-	virtual EToolContextTransformGizmoMode GetCurrentTransformGizmoMode() const override
+	virtual void SetActorSelection(const TArray<AActor*>& Actors) override
 	{
-		return Owner.GetTransformGizmoMode();
+		TArray<UActorComponent*> Components;
+		for (AActor* Actor : Actors)
+		{
+			if (IsValid(Actor))
+			{
+				Components.Add(Actor->GetRootComponent());
+			}
+		}
+		SetSelection(Actors, Components);
 	}
 
-	virtual FToolContextSnappingConfiguration GetCurrentSnappingSettings() const override
+	virtual void SetSelection(const TArray<AActor*>& Actors, const TArray<UActorComponent*>& Components) override
 	{
-		const FOWTGizmoSnapSettings Settings = Context.GetSnapSettings();
-		FToolContextSnappingConfiguration Configuration;
-		Configuration.bEnablePositionGridSnapping = Settings.bTranslationEnabled;
-		Configuration.PositionGridDimensions = FVector(Settings.TranslationStep);
-		Configuration.bEnableRotationGridSnapping = Settings.bRotationEnabled;
-		Configuration.RotationGridAngles =
-		    FRotator(Settings.RotationStepDegrees, Settings.RotationStepDegrees, Settings.RotationStepDegrees);
-		Configuration.bEnableScaleGridSnapping = Settings.bScaleEnabled;
-		Configuration.ScaleGridSize = Settings.ScaleStep;
-		return Configuration;
+		if (Owner.ContextQueriesAPI && !Owner.bShutdownRequested)
+		{
+			Owner.ContextQueriesAPI->SetSelection(Actors, Components);
+		}
 	}
 
-	virtual UMaterialInterface* GetStandardMaterial(EStandardToolContextMaterials Type) const override
+	virtual void SetCoordinateSystem(EToolContextCoordinateSystem CoordinateSystem) override
 	{
-		return UMaterial::GetDefaultMaterial(MD_Surface);
+		if (Owner.ContextQueriesAPI)
+		{
+			Owner.ContextQueriesAPI->CoordinateSystem = CoordinateSystem == EToolContextCoordinateSystem::Local
+				? EToolContextCoordinateSystem::Local
+				: EToolContextCoordinateSystem::World;
+		}
 	}
 
-	virtual FViewport* GetHoveredViewport() const override
+	virtual void SetGizmoMode(EToolContextTransformGizmoMode Mode) override
 	{
-		UGameViewportClient* Viewport = Owner.GetWorld()->GetGameViewport();
-		return Viewport ? Viewport->Viewport : nullptr;
+		if (Owner.ContextQueriesAPI)
+		{
+			Owner.ContextQueriesAPI->GizmoMode = Mode;
+		}
 	}
 
-	virtual FViewport* GetFocusedViewport() const override
+	virtual EToolContextTransformGizmoMode GetGizmoMode() const override
 	{
-		return GetHoveredViewport();
+		return Owner.ContextQueriesAPI
+			? Owner.ContextQueriesAPI->GetCurrentTransformGizmoMode()
+			: EToolContextTransformGizmoMode::NoGizmo;
 	}
 
 private:
-	UVTBOWTEditorToolsContext& Context;
-	UVTBOWTEditorSubsystem& Owner;
+	UVTBOWTEditorToolsContext& Owner;
 };
 
-// Runtime history is a separate service. These hooks deliberately do not use GEditor transactions.
-class FOWTToolsTransactions : public IToolsContextTransactionsAPI
-{
-public:
-	virtual void DisplayMessage(const FText& Message, EToolMessageLevel Level) override
-	{
-		UE_LOG(LogTemp, Display, TEXT("OWT Tools: %s"), *Message.ToString());
-	}
-
-	virtual void PostInvalidation() override
-	{
-		// Game viewports redraw every frame.
-	}
-
-	virtual void BeginUndoTransaction(const FText& Description) override
-	{
-	}
-
-	virtual void EndUndoTransaction() override
-	{
-	}
-
-	virtual void AppendChange(UObject* Target, TUniquePtr<FToolCommandChange> Change, const FText& Description) override
-	{
-		// History integration is not implemented yet; do not advertise Undo support.
-	}
-
-	virtual bool RequestSelectionChange(const FSelectedObjectsChangeList& Change) override
-	{
-		// Selection enters through the edit-context interface.
-		return false;
-	}
-};
-} // namespace
-
-UVTBOWTEditorToolsContext::UVTBOWTEditorToolsContext() : SnapSettings(), Queries(), Transactions(), bInitialized(false)
+UVTBOWTEditorToolsContext::UVTBOWTEditorToolsContext()
+	: TransactionHistory(CreateVTBOWTEditorTransactionHistory(*this))
+	, SceneState(MakeUnique<FVTBOWTEditorSceneState>(*this))
+	, ContextInput(MakeUnique<FVTBOWTEditorToolsContextInput>(*this, *TransactionHistory))
+	, ContextViewport(MakeUnique<FVTBOWTEditorToolsContextViewport>(*this))
 {
 }
-
-void UVTBOWTEditorToolsContext::InitializeContext(UVTBOWTEditorSubsystem& Subsystem)
+UVTBOWTEditorToolsContext::UVTBOWTEditorToolsContext(FVTableHelper& Helper)
+	: Super(Helper)
+	, TransactionHistory(CreateVTBOWTEditorTransactionHistory(*this))
+	, SceneState(MakeUnique<FVTBOWTEditorSceneState>(*this))
+	, ContextInput(MakeUnique<FVTBOWTEditorToolsContextInput>(*this, *TransactionHistory))
+	, ContextViewport(MakeUnique<FVTBOWTEditorToolsContextViewport>(*this))
 {
-	check(IsInGameThread());
-	if (bInitialized)
+}
+UVTBOWTEditorToolsContext::~UVTBOWTEditorToolsContext() = default;
+
+void UVTBOWTEditorToolsContext::Initialize(IToolsContextQueriesAPI* InQueriesAPI, IToolsContextTransactionsAPI* InTransactionsAPI)
+{
+	InitializeInternal(GetWorld(), InQueriesAPI, InTransactionsAPI);
+}
+
+bool UVTBOWTEditorToolsContext::InitializeContext(UWorld* InWorld)
+{
+	InitializeInternal(InWorld, nullptr, nullptr);
+
+	return IsRuntimeReady();
+}
+
+void UVTBOWTEditorToolsContext::InitializeInternal(UWorld* InWorld, IToolsContextQueriesAPI* InQueriesAPI,
+	IToolsContextTransactionsAPI* InTransactionsAPI)
+{
+	if (ContextQueriesAPI)
 	{
 		return;
 	}
+	{
+		TGuardValue<bool> UpdateGuard(bUpdating, true);
+		ContextQueriesAPI = MakeUnique<FVTBOWTEditorToolsContextQueriesImpl>(*this);
+		ContextQueriesAPI->Initialize(InWorld, InQueriesAPI);
+		ContextTransactionAPI = MakeUnique<FVTBOWTEditorToolsContextTransactionImpl>(*this, *TransactionHistory);
+		ContextTransactionAPI->Initialize(InTransactionsAPI);
+		Super::Initialize(ContextQueriesAPI.Get(), ContextTransactionAPI.Get());
+	}
+	ContextViewport->ResetRenderCallCount();
+	if (bShutdownRequested)
+	{
+		FinishPendingShutdown();
+		return;
+	}
+	ContextRenderAPI = MakeUnique<FVTBOWTEditorToolsContextRenderImpl>(*this);
+	ContextInput->BindApplicationFocus();
+}
 
-	Queries = MakeUnique<FOWTToolsQueries>(*this, Subsystem);
-	Transactions = MakeUnique<FOWTToolsTransactions>();
-	Super::Initialize(Queries.Get(), Transactions.Get());
-	ContextObjectStore->AddContextObject(NewObject<UVTBOWTSceneSnappingManager>(this));
-	bInitialized = true;
+bool UVTBOWTEditorToolsContext::IsRuntimeReady() const
+{
+	return ContextRenderAPI != nullptr && !bShutdownRequested;
+}
+
+UWorld* UVTBOWTEditorToolsContext::GetEditingWorld() const
+{
+	return ContextQueriesAPI ? ContextQueriesAPI->GetCurrentEditingWorld() : nullptr;
 }
 
 void UVTBOWTEditorToolsContext::Shutdown()
 {
-	check(IsInGameThread());
-	if (!bInitialized)
+	if (!ContextQueriesAPI)
 	{
 		return;
 	}
+	bShutdownRequested = true;
+	FinishPendingShutdown();
+}
 
-	// Managers may still call the APIs while shutting down.
+void UVTBOWTEditorToolsContext::FinishPendingShutdown()
+{
+	if (!bShutdownRequested || bUpdating)
+	{
+		return;
+	}
+	TGuardValue<bool> UpdateGuard(bUpdating, true);
+	ContextRenderAPI.Reset();
+	ContextInput->UnbindApplicationFocus();
+	TransactionHistory->BeginCancellation();
+	ContextInput->FinishPendingCancellation();
+	{
+		TArray<UObject*> ManagedObjects;
+		GetObjectsWithOuter(GizmoManager, ManagedObjects);
+		for (UObject* Object : ManagedObjects)
+		{
+			UCombinedTransformGizmo* Gizmo = Cast<UCombinedTransformGizmo>(Object);
+			if (IsValid(Gizmo) && Gizmo->ActiveTarget)
+			{
+				Gizmo->ClearActiveTarget();
+			}
+		}
+	}
 	Super::Shutdown();
-	Transactions.Reset();
-	Queries.Reset();
-	bInitialized = false;
+	ContextTransactionAPI.Reset();
+	TransactionHistory->Reset();
+	ContextQueriesAPI.Reset();
+	bShutdownRequested = false;
 }
 
-bool UVTBOWTEditorToolsContext::IsInitialized() const
+void UVTBOWTEditorToolsContext::BeginDestroy()
 {
-	return bInitialized;
+	Shutdown();
+	Super::BeginDestroy();
 }
 
-bool UVTBOWTEditorToolsContext::SetSnapSettings(const FOWTGizmoSnapSettings& Settings)
+bool UVTBOWTEditorToolsContext::RunContextUpdate(TFunctionRef<void()> Action)
 {
-	check(IsInGameThread());
-	if (!FMath::IsFinite(Settings.TranslationStep) || Settings.TranslationStep <= UE_SMALL_NUMBER ||
-	    !FMath::IsFinite(Settings.RotationStepDegrees) || Settings.RotationStepDegrees <= UE_SMALL_NUMBER ||
-	    !FMath::IsFinite(Settings.ScaleStep) || Settings.ScaleStep <= UE_SMALL_NUMBER)
+	if (!IsRuntimeReady() || bUpdating)
 	{
 		return false;
 	}
-
-	// Finish the current interaction before changing its quantization rule.
-	if (bInitialized)
-	{
-		InputRouter->ForceTerminateAll();
-	}
-	SnapSettings = Settings;
+	RunGuardedContextUpdate(Action);
 	return true;
 }
 
-FOWTGizmoSnapSettings UVTBOWTEditorToolsContext::GetSnapSettings() const
+void UVTBOWTEditorToolsContext::RunGuardedContextUpdate(TFunctionRef<void()> Action)
 {
-	return SnapSettings;
+	{
+		TGuardValue<bool> UpdateGuard(bUpdating, true);
+		Action();
+	}
+	FinishPendingShutdown();
+}
+
+IToolsContextRenderAPI* UVTBOWTEditorToolsContext::GetContextRenderAPI()
+{
+	return ContextRenderAPI.Get();
+}
+IToolsContextQueriesAPI* UVTBOWTEditorToolsContext::GetContextQueriesAPI()
+{
+	return ContextQueriesAPI.Get();
+}
+IToolsContextTransactionsAPI* UVTBOWTEditorToolsContext::GetContextTransactionAPI()
+{
+	return ContextTransactionAPI.Get();
+}
+
+void UVTBOWTEditorToolsContext::TickRuntime(float DeltaTime)
+{
+	RunContextUpdate([&]
+	{
+		ToolManager->Tick(DeltaTime);
+		if (IsRuntimeReady())
+		{
+			GizmoManager->Tick(DeltaTime);
+		}
+	});
+}
+
+IVTBOWTEditorInput& UVTBOWTEditorToolsContext::GetInput() const
+{
+	return *ContextInput;
+}
+
+IVTBOWTEditorViewport& UVTBOWTEditorToolsContext::GetViewport() const
+{
+	return *ContextViewport;
+}
+
+IVTBOWTEditorSceneState& UVTBOWTEditorToolsContext::GetSceneState() const
+{
+	return *SceneState;
+}
+
+IVTBOWTEditorUndoRedo& UVTBOWTEditorToolsContext::GetUndoRedo() const
+{
+	return *TransactionHistory;
+}
+
+void UVTBOWTEditorToolsContext::UpdateRenderView(const FSceneView* View, FPrimitiveDrawInterface* PDI)
+{
+	ContextRenderAPI->UpdateCameraState(View, PDI);
+}
+
+void UVTBOWTEditorToolsContext::ResetRenderView()
+{
+	ContextRenderAPI->ResetView();
 }

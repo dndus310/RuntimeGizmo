@@ -15,12 +15,14 @@ public class VTBOWTEditor : ModuleRules
                 "InteractiveToolsFramework",
                 "EnhancedInput",
                 "InputCore",
+                "CommonUI",
             }
         );
 
         PrivateDependencyModuleNames.AddRange(
             new string[]
             {
+                "GeometryFramework",
                 "Slate",
                 "SlateCore"
             }

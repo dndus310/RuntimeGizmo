@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "simple_proj.h"
 #include "Modules/ModuleManager.h"
 
