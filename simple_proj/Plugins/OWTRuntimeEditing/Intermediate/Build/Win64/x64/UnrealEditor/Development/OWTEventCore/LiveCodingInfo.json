@@ -1,0 +1,16 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.OWTEventCore.cpp.obj": [
+			"OWTEventCore.init.gen.cpp.obj",
+			"OWTEventTestObject.gen.cpp.obj",
+			"OWTEventTypes.gen.cpp.obj",
+			"OWTNotificationCenter.gen.cpp.obj",
+			"PerModuleInline.gen.cpp.obj",
+			"OWTEventTypes.cpp.obj",
+			"OWTNotificationCenter.cpp.obj",
+			"OWTEventCore.cpp.obj",
+			"OWTEventCoreTests.cpp.obj"
+		]
+	}
+}

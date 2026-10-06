@@ -1,0 +1,23 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\source\\vtbowteditor\\vtbowteditorgamestate.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\intermediate\\build\\win64\\x64\\simple_projeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.valexpapi.cpp20.h.pch",
+        "Includes": [
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\vtbowteditor\\definitions.vtbowteditor.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\source\\vtbowteditor\\public\\vtbowteditorgamestate.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\engine\\classes\\gameframework\\gamestate.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\engine\\classes\\gameframework\\gamestatebase.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\engine\\classes\\gameframework\\gamemodebase.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\engine\\classes\\engine\\serverstatreplicator.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\serverstatreplicator.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\gamemodebase.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\gamestatebase.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\gamestate.generated.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\intermediate\\build\\win64\\unrealeditor\\inc\\vtbowteditor\\uht\\vtbowteditorgamestate.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

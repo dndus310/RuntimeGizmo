@@ -1,0 +1,19 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\source\\owteventcore\\private\\tests\\owteventcoretests.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\intermediate\\build\\win64\\x64\\simple_proj\\development\\coreuobject\\sharedpch.coreuobject.project.valapi.valexpapi.cpp20.h.pch",
+        "Includes": [
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\intermediate\\build\\win64\\x64\\unrealgame\\development\\owteventcore\\definitions.owteventcore.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\source\\owteventcore\\public\\events\\owtnotificationcenter.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\source\\owteventcore\\public\\events\\owteventtypes.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\intermediate\\build\\win64\\unrealgame\\inc\\owteventcore\\uht\\owteventtypes.generated.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\intermediate\\build\\win64\\unrealgame\\inc\\owteventcore\\uht\\owtnotificationcenter.generated.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\source\\owteventcore\\private\\tests\\owteventtestobject.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtruntimeediting\\intermediate\\build\\win64\\unrealgame\\inc\\owteventcore\\uht\\owteventtestobject.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

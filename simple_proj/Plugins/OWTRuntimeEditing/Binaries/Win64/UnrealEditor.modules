@@ -1,0 +1,9 @@
+{
+	"BuildId": "47537391",
+	"Modules": 
+	{
+		"OWTEventCore": "UnrealEditor-OWTEventCore.dll",
+		"OWTRuntimeDuplication": "UnrealEditor-OWTRuntimeDuplication.dll",
+		"VTBOWTEditor": "UnrealEditor-VTBOWTEditor.dll"
+	}
+}

@@ -1,0 +1,16 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.OWTRuntimeDuplication.cpp.obj": [
+			"OWTDuplicationRestoreComponent.gen.cpp.obj",
+			"OWTRuntimeActorDuplicator.gen.cpp.obj",
+			"OWTRuntimeDuplication.init.gen.cpp.obj",
+			"OWTRuntimeDuplicationParticipant.gen.cpp.obj",
+			"PerModuleInline.gen.cpp.obj",
+			"OWTDuplicationRestoreComponent.cpp.obj",
+			"OWTRuntimeActorDuplicator.cpp.obj",
+			"OWTRuntimeDuplicationParticipant.cpp.obj",
+			"OWTRuntimeDuplication.cpp.obj"
+		]
+	}
+}

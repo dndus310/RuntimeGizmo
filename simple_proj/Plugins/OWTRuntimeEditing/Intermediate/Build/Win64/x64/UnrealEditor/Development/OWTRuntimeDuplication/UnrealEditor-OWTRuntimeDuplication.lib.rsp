@@ -1,0 +1,16 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-OWTRuntimeDuplication.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Intermediate/Build/Win64/x64/simple_projEditor/Development/UnrealEd/SharedPCH.UnrealEd.Project.ValApi.ValExpApi.Cpp20.h.obj"
+"C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTRuntimeEditing/Intermediate/Build/Win64/x64/UnrealEditor/Development/OWTRuntimeDuplication/Module.OWTRuntimeDuplication.cpp.obj"
+"C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTRuntimeEditing/Intermediate/Build/Win64/x64/UnrealEditor/Development/OWTRuntimeDuplication/OWTRuntimeDuplication.cpp.obj"
+"C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTRuntimeEditing/Intermediate/Build/Win64/x64/UnrealEditor/Development/OWTRuntimeDuplication/OWTDuplicationRestoreComponent.cpp.obj"
+"C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTRuntimeEditing/Intermediate/Build/Win64/x64/UnrealEditor/Development/OWTRuntimeDuplication/OWTRuntimeActorDuplicator.cpp.obj"
+"C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTRuntimeEditing/Intermediate/Build/Win64/x64/UnrealEditor/Development/OWTRuntimeDuplication/OWTRuntimeDuplicationParticipant.cpp.obj"
+"C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTRuntimeEditing/Intermediate/Build/Win64/x64/UnrealEditor/Development/OWTRuntimeDuplication/Default.rc2.res"
+/OUT:"C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTRuntimeEditing/Intermediate/Build/Win64/x64/UnrealEditor/Development/OWTRuntimeDuplication/UnrealEditor-OWTRuntimeDuplication.lib"
