@@ -17,16 +17,19 @@ public class VTBOWTEditor : ModuleRules
                 "InputCore",
                 "UMG",
                 "OWTEventCore",
-                "OWTRuntimeDuplication",
             }
         );
 
         PrivateDependencyModuleNames.AddRange(
             new string[]
             {
+                "OWTStateMonitor",
                 "Slate",
                 "SlateCore",
-                "Json"
+                "Json",
+                "PCG",
+                "RenderCore",
+                "RHI"
             }
         );
     }

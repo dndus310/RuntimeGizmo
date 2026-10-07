@@ -101,7 +101,7 @@ bool FOWTAttributeContractTest::RunTest(const FString& Parameters)
 	TestFalse(TEXT("Other editor session rejected"),
 	          Editor->PublishRequest(TEXT("TransformEditRequested"), ContractJson(Request)));
 	Request = MakeContractRequest(Editor->GetSnapshot());
-	Request->SetNumberField(TEXT("schemaVersion"), 2);
+	Request->SetNumberField(TEXT("schemaVersion"), 3);
 	TestFalse(TEXT("Unsupported schema rejected"),
 	          Editor->PublishRequest(TEXT("TransformEditRequested"), ContractJson(Request)));
 	TestEqual(TEXT("Rejected requests preserve Actor"), Target->GetActorLocation().X, 10.0);

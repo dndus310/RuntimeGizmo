@@ -1,5 +1,45 @@
 # Runtime AttributeEditor 요구사항 및 병렬 작업 명세
 
+> 첫 절은 **v3의 실제 구현·검증 기록**이다. 이후 v2 명세와 과거 결과는 비교를 위해 보존한다. 현재 설계는 [AttributeEditMode_ITF_Spec.md](AttributeEditMode_ITF_Spec.md), 설치·API·확장 방법은 [RuntimeAttributeEditor_Usage.md](RuntimeAttributeEditor_Usage.md)를 기준으로 한다.
+
+## v3 구현 및 검증 — 2026-10-08
+
+Unreal Engine 5.7, Windows Development에서 구현과 검증을 완료했다. 통합 담당 1명과 ITF, 복제·PCG, UI·계약 검증 담당 3명이 파일 소유 범위를 나눠 작업했다. 기존 v2 결과를 재사용하지 않고 아래 환경에서 다시 실행했다.
+
+Runtime 모드의 소유권은 `Subsystem → UOWTAttributeEditMode → ToolsContext / ToolManager / 도구·복제 세션`으로 구성했다. `AttributeEditTool`과 `DuplicateTool`은 builder 등록으로 실행되며, 외부 Tool·TargetFactory·Context provider를 등록·해제할 수 있다. UI는 등록된 도구와 사용 가능 사유를 조회한다. 기존 `VTBOWTObjectEditMode` script 경로는 호환 wrapper로 유지한다.
+
+`AttributeEditor`는 소유 Pub-Sub와 Actor 관찰 상태 저장소를 유지한다. Actor의 실제 값, Mode·복제 operation·PCG의 typed 상태, JSON 전달을 구분했다. 복제 요청 접수, authored 계층 commit, PCG `Ready`는 별개 상태다. 이벤트 콜백이 모드나 선택을 변경해도 이전 이벤트·자동 선택이 최신 상태를 덮어쓰지 않도록 검증한다.
+
+독립 `OWTRuntimeDuplication` 모듈은 제거하고 구현을 `VTBOWTEditor/Duplication`으로 통합했다. 배포 플러그인은 Runtime 모듈 `OWTEventCore`, `VTBOWTEditor` 두 개이며 PCG를 필수 의존성으로 사용한다. 클래스 이관 redirect는 새 호스트에서도 로드되는 `Config/Engine.ini`에 둔다. 기존 C++ 소비자의 Build.cs는 `VTBOWTEditor` 의존성으로 변경해야 한다. 이전 bool `RequestDuplicate`의 성공은 접수를 뜻하며 완료는 operation 상태로 관찰한다.
+
+복제는 이름의 `_숫자` 증가, authored attachment와 ChildActorComponent 계층, 지원 객체·component·instanced UObject 참조 복원을 포함한다. PCG GraphInstance·parameter·seed·generation policy·지원 custom scheduling policy를 복원하고 generated ISM/Actor·cache·task를 공유하지 않는다. PCG 실행은 authored commit 후 시작하며 partition/HiGen local component의 생성·정리·재생성을 관찰한다. 어댑터는 가장 구체적인 Primary 하나와 적용 가능한 Auxiliary를 선택하고 소유권 충돌을 거부한다.
+
+| 검증 | 결과 | 근거 |
+|---|---|---|
+| 원본 프로젝트 Editor 빌드 | PASS | `Saved/Logs/V3_EditorVerifiedBuild2.log`, 추가 fixture 포함 `V3_EditorChildActorBuild.log` |
+| Editor의 실제 RHI 게임 실행 | 21/21 PASS, warning/error 0 | `Saved/Automation/V3_RHIVerified/index.json` |
+| 추가 cooked BP ChildActor + OnLoad | 1/1 PASS, warning/error 0 | `Saved/Automation/V3_PCGChildActor/index.json` |
+| 원본 Game build·cook·stage | PASS | `Saved/Logs/V3_HostPackage.log`; 테스트 C++ 추가 후 기존 cooked content를 사용한 `V3_HostPackageFinal.log` |
+| 최종 원본 packaged 실제 RHI 실행 | **22/22 PASS, warning/error 0, skip 0** | `Saved/Automation/V3_HostPackagedFinal/index.json`, `Saved/Logs/V3_HostPackagedFinalTests.log` |
+| 고급 Native/BP/CAC·MID·물리·BeginPlay 회귀 | PASS, warning/error 0 | `Saved/Logs/V3_DuplicationFinalRegression.log`의 `OWT_DUPLICATION_VALIDATION: PASS` |
+| 기존 BP 입력 및 샘플 레벨 회귀 | PASS | `Saved/Logs/V3_InputRegression.log`, `V3_LevelRegression.log` |
+| 독립 소비 프로젝트 Editor 빌드·계약 검사 | PASS; 19개 실행 통과, viewport 2개는 NullRHI skip | `Saved/Logs/V3_ProbeEditorVerifiedBuild2.log`, `Saved/Automation/V3_ProbeEditorVerified/index.json` |
+| 독립 소비 프로젝트 Game build·cook·stage | PASS | `Saved/Logs/V3_ProbePackage.log` |
+| 독립 packaged 실제 RHI 실행 | **22/22 PASS, warning/error 0, skip 0** | `Saved/Automation/V3_ProbePackaged/index.json`, `Saved/Logs/V3_ProbePackagedTests.log` |
+| 배포 일치 검사 | Source/Config/Content/descriptor/README **104개 파일 SHA-256 일치** | 원본·`Saved/PortabilityProbeV3` 복사본·배포 폴더·ZIP entry 비교. `Saved/Distribution/V3/manifest.sha256.json`, `archive-verification.json` |
+
+독립 소비 프로젝트는 `/Game/VTBOWT` 샘플 없이 `/Engine/Maps/Entry`와 복사한 플러그인만 사용한다. plugin-owned cooked BP/graph는 배포 Content에 포함한다. 원본의 `OWT.Runtime.Attributes`와 독립 프로젝트의 `OWT.Portability.IndependentHost`는 각각의 host 전용 검사이며 나머지는 동일한 plugin 테스트다.
+
+PCG 검증은 실제 CPU CreatePoints→StaticMeshSpawner graph를 사용했다. 일반 BP attachment, live BeginPlay의 cooked BP ChildActor + OnLoad, non-partition/partition/HiGen runtime scheduler, 생성 소스 이동·cleanup·복귀, GraphInstance/parameter/policy 참조, 원본과 복제본의 자원 분리를 확인했다. ChildActor 검사는 authored commit 시 PCG 비활성·미생성·출력 0을 확인하고 그 후 `Generating → Ready`와 독립 출력 2개를 확인한다. 기본 unbounded PCG 반경이 매우 크므로 거리 cleanup 테스트는 명시적 생성 반경을 사용한다.
+
+실제 viewport의 HUD 프레임에서 Tool `Render/DrawHUD` 호출을 검증했다. packaged Details·Events PNG를 열어 필드·도구 버튼·작업 상태·스크롤 영역의 배치를 확인했다. 원본 화면 사본은 `Saved/Verification/V3/Packaged_Details.png`, `Packaged_Monitor.png`다. 독립 프로젝트도 실제 RHI에서 두 viewport 검사를 실행하고 캡처를 확인했다. 이는 마우스·키보드 전체 사용자 동선에 대한 수동 사용성 검사를 뜻하지 않는다.
+
+배포본은 [OWTRuntimeEditing_UE5.7_v3.zip](../Saved/Distribution/OWTRuntimeEditing_UE5.7_v3.zip)이다. 소스·설정·콘텐츠·descriptor·README만 포함하며 Binaries/Intermediate 및 제거한 duplication 모듈을 포함하지 않는다. SHA-256은 `B1EF88F21E708AC36F11F24C966C93C2BF113058FB795307E56E229D62BEAEA9`다. 이전 이름의 v2 ZIP과 `Saved/PortabilityProbe`는 과거 자료이며 이번 배포본과 구분한다.
+
+지원 경계는 유지한다. GPU PCG graph는 검증하지 않았고, material mesh 렌더가 필요한 일반 Modeling Tool과 범용 Undo history는 현재 host capability에서 비활성화된다. 임의 native/opaque 상태, Actor 소유 graph definition, 복제 억제를 무시하고 자체 PCG cleanup을 시작하는 Construction은 전용 협력 adapter가 필요하다. 일반 attached Actor의 BeginPlay가 모든 sibling 참조 연결보다 먼저 실행될 수 있으므로 전체 계층의 준비 경계는 authored commit이다. partition/runtime PCG는 구성된 PCGWorldActor가 필요하다. 자세한 API와 실패 사유는 사용법 문서에 기록했다.
+
+## v2 기록 시작
+
 작성일: 2026-10-07 · 대상: `simple_proj`, Unreal Engine 5.7
 
 이 문서는 v2의 승인된 요구사항과 현재 구현된 C++ API를 함께 정리한다. `OWTRuntimeEditing` 플러그인은 범용 소유 Pub-Sub, Actor 복제, typed 관찰 상태와 Details/Events UI를 세 Runtime 모듈로 제공한다. Editor 빌드와 기능별 실행 검증은 구분하며, 최종 검증 결과는 12절에 별도로 기록한다. 기존 v1 결과는 역사적 기록으로만 유지한다. 실행법과 C++/BP 연결 예시는 [RuntimeAttributeEditor_Usage.md](RuntimeAttributeEditor_Usage.md)를 참고한다.
@@ -414,3 +454,110 @@ if (!Subsystem->IsEditingEnabled())
 - [사용자 지정 NotificationCenter 참고](https://github.com/dndus310/ProjectT/blob/main/Source/ProjectT/System/Core/Managers/NotificationCenter.h).
 - [Epic DuplicateActor API](https://dev.epicgames.com/documentation/unreal-engine/API/Editor/UnrealEd/Subsystems/UEditorActorSubsystem/DuplicateActor/1?application_version=5.5) — Editor API 참고. 실제 설계 검토는 설치된 UE5.7 소스를 기준으로 했다.
 - [Epic FActorSpawnParameters](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Engine/FActorSpawnParameters) — Template, OverrideLevel, 충돌 및 TransformScaleMethod 옵션.
+
+## 14. 가독성 정리 기록 (2026-10-08)
+
+이번 변경은 기존 Runtime 동작을 보존하면서 소스 28개 파일(추가 6, 수정 22)의 책임과 읽는 순서를 정리한 작업이다. v4 기능이나 Blueprint CustomGizmo 기능의 신규 구현으로 분류하지 않는다.
+
+참고한 `vit-app` 소스는 [variables.pool.h](D:/Repo-W/CL_PROJ/vit-app/src/vsfx/model/variables.pool.h), [module.manager.h](D:/Repo-W/CL_PROJ/vit-app/src/vsfx/module/module.manager.h), [module.manager.cpp](D:/Repo-W/CL_PROJ/vit-app/src/vsfx/module/module.manager.cpp), [notification.center.h](D:/Repo-W/CL_PROJ/vit-app/src/vsfx/comm/notification.center.h), [page.controller.h](D:/Repo-W/CL_PROJ/vit-app/src/vsfx/ui/page.controller.h)다. 작은 클래스 책임, 함수·데이터 영역의 구분, 상위 함수가 처리 순서를 조율하는 구성을 적용했다. Unreal의 타입·표기법·컨테이너와 reflection 매크로는 유지하며 C 스타일이나 `std::` 사용으로 전환하지 않았다.
+
+| 영역 | 정리한 내용 | 보존한 계약 |
+|---|---|---|
+| AttributeEditor | JSON 변환·요청 해석을 `Private/AttributeEditor/OWTAttributeJson`으로 분리. 요청 context, 대상 해석, Transform operation 검증을 각각 구분 | 공개 UFUNCTION, JSON 필드·오류·이벤트, callback 전후 수명·선택 검증 |
+| Duplicate | 계층 수집을 `FAuthoredActorHierarchy`로 분리. `FDuplicateOperation` 선언과 구현, adapter commit 단계를 구분 | CAC 우선 순회, 참조 매핑, 실패 rollback, cancel·commit 알림 순서 |
+| PCG adapter | 긴 class 본문을 선언과 구현으로 구분. 설정 복원·관찰 연결·생성 정책·생성 요청 단계에 이름 부여 | 모든 component 매핑 후 참조 복원, 관찰 연결 후 생성, 원본 자원·세대 수명 |
+| Mode / Tool | Context 초기화, Gizmo·설정 Tool·Extension 등록, 선택 Behavior 초기화를 구분 | 기존 진입·종료 순서, Extension 재진입 검사, selection/capture 동작 |
+| Sidebar | 헤더·탭·live operation·monitor controls 구성 및 Tool 변경 감지, JSON 파싱·검색을 분리 | Slate 구성·LOCTEXT, focus·slider·Duplicate callback 순서. 기존 사용자 Slate 포맷 유지 |
+| Gizmo | 위치·회전 Gizmo와 전용 Builder를 각 header/cpp로 분리. Behavior는 입력 설정만 담음 | UClass 이름 및 입력 정책 유지, 기존 Behavior include의 forwarding 호환 |
+| Subsystem / 공통 | 기본 Mode 생성과 Context handler 등록 분리, 반복되는 활성 Tool 조회 정리, 선택 조회 guard 명시 | UPROPERTY 저장 순서, 설정·BP 참조 및 공통 수명 |
+
+대표적으로 `VTBAttributeEditor.cpp`는 1,768줄에서 1,318줄로 줄었고, `ProcessTransformRequest`는 151줄에서 65줄, `ProcessDuplicateRequest`는 125줄에서 50줄로 정리됐다. 전체 코드 줄 수 자체를 줄이는 목표는 아니다. 이동한 JSON 코드와 helper가 추가되며, 상위 진입점에서 처리 순서를 읽을 수 있게 하는 것이 기준이다.
+
+작업 전 원본은 `Saved/Backups/BeforeReadability_20261008_011448`에 보존했다. 변경 파일 목록은 `Saved/ReadabilityChangedFiles.json`, 공백을 제외한 검토 diff는 `Saved/Verification/Readability.diff`에 있다. 스타일 기준은 [CppStyle.md](C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Docs/CppStyle.md)에 반영했다.
+
+정적 검토에서 공개 reflection 이름·멤버 저장 순서, JSON 문자열과 오류 우선순위, 재진입·cleanup 순서를 대조했다. 테스트 내용은 바꾸지 않았다. 검증 실행 결과는 아래에 기록한다.
+
+| 검사 | 결과 | 근거 |
+|---|---|---|
+| Editor Win64 Development | PASS | `Saved/Logs/Readability_EditorBuild.log` |
+| 기존 Runtime + EventCore 회귀 | 22/22 PASS, warning/failure/not-run 0 | `Saved/Automation/Readability_Regression/index.json` |
+| Playground Smoke / Navigation / Stress | 3/3 PASS, warning/failure/not-run 0. Smoke 18회·Stress 288회 복제 검증 | `Saved/Automation/Readability_SmokeNavigation/index.json`, `Saved/Automation/Readability_Stress/index.json` |
+| 기존 입력·기본/Custom Gizmo 검증 | PASS, warning/error 0. 회전 focus·원복, snapping, 입력·수명 검증 | `Saved/Logs/Readability_GizmoValidation.log` |
+| Game Win64 Development | PASS | `Saved/Logs/Readability_GameBuild.log` |
+
+자동화 25개는 새 Editor DLL의 `-game -RenderOffscreen` 환경에서 실제 RHI로 실행했다. Stress의 편집 Actor 수는 600개로 유지됐으며 종료 시 임시 Actor와 GC 후 추적 복제 Actor/component는 0이었다. 기본·Custom Gizmo의 추가 입력 검사는 `CreateOWTInput -ValidateOnly -nullrhi`에서 수행했다. Details·Events 화면은 별도 실제 RHI 캡처로 확인했으며 [전시 화면](C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Saved/Verification/Readability/Showroom.png), [Details](C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Saved/Verification/Readability/Details.png), [Monitor](C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Saved/Verification/Readability/Monitor.png)에 보존한다. 기존 패키지 실행 등 동시 작업이 있었으므로 이번 프레임 시간은 이전 단독 패키지 성능과 비교하지 않는다.
+
+이번 가독성 작업의 결과는 위 새 빌드와 검사에서 판단한다. 기존 실행 중인 Playground 패키지와 배포 ZIP은 교체하지 않았으며, 해당 검증 기록은 그때의 빌드 기록으로 보존한다. 현재 프로젝트의 Editor DLL과 Game 실행 파일은 정리한 소스로 빌드됐다.
+
+## 15. 범용 Runtime 상태 모니터 (2026-10-08)
+
+모니터는 `Plugins/OWTStateMonitor`의 독립 Runtime 모듈로 구성한다. 이 모듈은 AttributeEditor·ITF·PCG·이벤트 전송 모듈을 참조하지 않으며, 소비 시스템이 소유하는 `FOWTStateMonitorModel`에 관찰용 구조체 값을 제출한다. `UScriptStruct`와 해당 타입의 구조체 주소를 함께 전달하고 호출 중 reflected 필드를 복사한다. 일반 C++ 구조체에는 자동 필드 열거 계약이 없으므로 `USTRUCT`·`UPROPERTY`를 입력 조건으로 사용한다.
+
+기본 표시 방식은 필드·타입·값을 비교하기 쉬운 가상화 트리뷰다. 같은 값의 JSON 표현과 복사 기능, source 선택·필드 검색, 변경 전후 값의 이력도 제공한다. 변경 필드는 색상과 기호로 구분하고 이전 값을 tooltip에 표시한다. 이력은 전체 과거 Actor를 유지하는 Undo 스택이 아니라 관찰된 필드 변화의 기록이다. 이력을 일시정지하거나 과거 기록을 선택해도 Current 관찰은 계속되며, 펼침·선택·스크롤 상태를 보존한다.
+
+| 계약 | 구현 기준 |
+|---|---|
+| 입력 | 중첩 USTRUCT, 고정 배열·Array·Map·Set, 숫자·bool·enum·문자열·이름·텍스트·객체 참조 |
+| 원본 수명 | 원본 구조체 주소를 보관하지 않음. UObject는 경로/null로 표시하며 내부 재귀 탐색·강한 참조 보관 없음 |
+| Current | 동일 Source ID의 최신 관찰값을 교체. 동일 값 반복 제출은 이력 증가 없음 |
+| 변경 | 안정적인 경로로 Added·Modified·Removed 비교. Map/Set 정렬. 배열은 인덱스 기반 |
+| 제한 | source·노드·깊이·문자·키 검사·컨테이너 순회·이력 수와 이력 전체 문자 예산. 잘린 상태를 표시하고 거짓 추가/삭제 추론 억제 |
+| History | 필드 경로·이전 값·새 값·sequence 기록. 일시정지는 이력 표시만 동결 |
+| 초기화 | 변경 강조 확인 및 이력 삭제는 모니터 데이터에만 적용. 원본 상태와 이벤트 저널 유지 |
+| C++ 소비 | `SOWTStateMonitor`의 Model 인자로 공유 모델을 주입 |
+| Blueprint 소비 | `UOWTStateMonitorWidget`의 구조체 wildcard Submit Snapshot. UMG 재생성 시 모델 유지 |
+| 엔진 경계 | Runtime 모듈만 사용. UnrealEd·프로젝트 콘텐츠 의존성 없음 |
+
+프로젝트 연결은 `UOWTAttributeDetailsWidget`의 작은 adapter에 둔다. `FOWTAttributeMonitorSnapshot`의 Selection·Mode·Tools·DuplicationOperations·ProceduralComponents는 실제 typed 저장소에서 읽는다. 별도 `FOWTAttributeMonitorEvents`의 Journal에는 기존 JSON 이벤트 문자열을 전달한다. Events를 역해석해 Current를 만들지 않는다. 표시 중 약 10Hz로 구조체를 제출하고 Events는 이미 유한 저널이므로 모니터 변경 이력을 중복 저장하지 않는다. F3 진입점과 기존 UI 입력 차단 계약을 유지한다.
+
+설치·C++·Blueprint 사용 예시는 [OWTStateMonitor README](C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTStateMonitor/README.md)에 기록한다. 모니터의 기본 설정과 이력은 메모리에 있다. Git 설정을 변경하거나 로그 파일을 자동 저장하는 기능은 없다.
+
+## 16. 복제 정책·Provider 확장 (2026-10-08)
+
+`UOWTRuntimeActorDuplicator` 생성자에서 PCG를 직접 등록하던 연결을 제거한다. 모듈이 `IOWTDuplicationAdapterProvider`를 Modular Feature에 등록하고, 각 소유 Duplicator가 Initialize에서 Provider를 탐색하여 자신의 `FOWTDuplicationAdapterRegistry`에 factory와 필드 정책을 등록한다. Provider ID 순서로 설치하며 세션 중에는 owner registry를 사용한다. 복제 시작 시 Registry 전체를 값으로 복사하므로 factory나 검증 callback이 owner의 등록을 바꿔도 진행 중인 작업에는 이미 확보한 factory·필드 정책을 사용한다.
+
+`FOWTDuplicationPropertyPolicySet`은 클래스별 정책을 등록하고 가장 구체적인 클래스부터 검사한다. 판단이 unset이면 상위 클래스 정책으로 이어진다. 공통 transient·delegate 제외는 복제 코어가 먼저 적용한다. 기본 Actor·Component·Scene·MID의 엔진 수명 규칙은 별도 Engine Provider에 둔다. MID renderer 자원과 Tick·BodyInstance·Transform cache는 기존 전용 엔진 API로 복원하며 일반 필드 복사 범위에 넣지 않는다. 엔진 버전 계약으로 남는 필드 허용 목록은 이 Provider에서 관리한다.
+
+PCG authoring 값은 `OWTPCGComponentConfiguration`의 공통 reflection 전송으로 캡처·복원한다. `UPCGComponent` 선언 범위의 CPF_Edit 필드를 읽고 CPF_EditConst·transient·editor-only·delegate 등은 제외한다. VisibleAnywhere도 CPF_Edit를 가질 수 있으므로 CPF_EditConst를 제외하는 것이 필수다. 미래에 편집 가능한 PCG 필드가 추가되어도 필드별 대입을 추가하지 않는다. Graph instance·parameter bag·SchedulingPolicy·ToolData·활성화 억제·생성 요청·partition 등록은 PCG 전용 수명 처리에 유지한다. PCG 파생 클래스의 사용자 필드는 기존 공통 복제 경로가 맡는다.
+
+Provider의 factory·규칙은 Provider 객체 주소에 의존하지 않는 함수여야 하며 소비 세션과 진행 중인 작업 동안 해당 모듈이 로드된 상태여야 한다. Modular Feature unregister는 새 세션의 탐색을 막는 동작이다. 이미 설치된 세션의 정책을 철회하거나 실행 중인 모듈을 강제로 unload하는 계약은 아니다.
+
+## 17. 형상관리 제외 방법
+
+Git에서 개인 PC에만 적용하는 제외 규칙은 `.git/info/exclude`, 팀과 공유할 생성 파일 규칙은 `.gitignore`에 둔다. ignore는 아직 추적하지 않는 파일에 적용된다. 이미 커밋한 파일은 ignore 규칙만으로 추적이 해제되지 않는다. [Git ignore 공식 문서](https://git-scm.com/docs/gitignore)
+
+현재 `git rev-parse --show-toplevel` 결과는 프로젝트 폴더가 아니라 `C:/Users/jkyii`다. 따라서 현재 저장소의 `.git/info/exclude`는 `C:/Users/jkyii/.git/info/exclude`이며 아래 규칙은 저장소 루트 기준이다.
+
+```gitignore
+# 모니터 플러그인 전체를 개인 PC에서 제외할 경우
+/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTStateMonitor/
+
+# 해당 프로젝트의 실행 기록·검증 산출물만 제외할 경우
+/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Saved/
+/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Intermediate/
+/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Binaries/
+```
+
+프로젝트 폴더 자체를 별도 Git 저장소로 관리하는 환경에서는 규칙이 다음처럼 짧아진다.
+
+```gitignore
+/Plugins/OWTStateMonitor/
+```
+
+플러그인 소스는 공유하고 Unreal 생성 파일만 제외하려면 프로젝트의 `.gitignore`에 다음과 같이 지정한다. 맨 앞 `/` 없는 디렉터리 패턴은 플러그인 내부의 같은 생성 디렉터리에도 적용된다.
+
+```gitignore
+Binaries/
+Intermediate/
+DerivedDataCache/
+Saved/
+.vs/
+```
+
+이미 추적 중인 플러그인을 앞으로 저장소에서 제외하기로 결정한 경우에는 먼저 ignore 규칙을 추가하고 프로젝트 디렉터리에서 다음 명령을 사용한다. `--cached`는 로컬 파일을 유지하고 Git index에서 제거한다. 변경을 커밋하면 다른 checkout에서도 해당 경로가 저장소에서 제거되므로 플러그인 배포 경로를 별도로 준비해야 한다. [Git rm 공식 문서](https://git-scm.com/docs/git-rm)
+
+```powershell
+git rm -r --cached -- Plugins/OWTStateMonitor
+```
+
+이번 작업에서는 Git 설정·index·추적 파일을 변경하지 않았다. 현재 확인한 새 모니터 플러그인은 untracked 상태다. 플러그인 전체를 제외할 경우 `OWTRuntimeEditing.uplugin` 및 `VTBOWTEditor.Build.cs`의 의존성이 남으므로 다른 PC/CI에 별도 설치해야 한다. 독립 플러그인 패키지나 별도 저장소로 전달하고 사용 버전을 고정하는 방식을 사용한다.

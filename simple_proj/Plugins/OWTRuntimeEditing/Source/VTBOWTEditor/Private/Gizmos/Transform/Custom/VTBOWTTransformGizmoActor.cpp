@@ -41,7 +41,9 @@ FVTBOWTTransformGizmoActorFactory::FVTBOWTTransformGizmoActorFactory(UGizmoViewC
 
 ACombinedTransformGizmoActor* FVTBOWTTransformGizmoActorFactory::CreateNewGizmoActor(UWorld* World) const
 {
-	check(World && GizmoViewContext);
+	check(World);
+	check(GizmoViewContext);
+
 	AVTBOWTTransformGizmoActor* Actor = World->SpawnActor<AVTBOWTTransformGizmoActor>();
 	if (!ensureMsgf(Actor, TEXT("OWT gizmo actor creation failed.")))
 	{

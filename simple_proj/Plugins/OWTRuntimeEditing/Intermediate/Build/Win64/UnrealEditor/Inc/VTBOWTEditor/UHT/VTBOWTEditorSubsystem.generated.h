@@ -37,8 +37,10 @@ private: \
 	static UClass* GetPrivateStaticClass(); \
 	friend VTBOWTEDITOR_API UClass* ::Z_Construct_UClass_UVTBOWTEditorSubsystem_NoRegister(); \
 public: \
-	DECLARE_CLASS2(UVTBOWTEditorSubsystem, UTickableWorldSubsystem, COMPILED_IN_FLAGS(0), CASTCLASS_None, TEXT("/Script/VTBOWTEditor"), Z_Construct_UClass_UVTBOWTEditorSubsystem_NoRegister) \
+	DECLARE_CLASS2(UVTBOWTEditorSubsystem, UTickableWorldSubsystem, COMPILED_IN_FLAGS(0 | CLASS_Config), CASTCLASS_None, TEXT("/Script/VTBOWTEditor"), Z_Construct_UClass_UVTBOWTEditorSubsystem_NoRegister) \
 	DECLARE_SERIALIZER(UVTBOWTEditorSubsystem) \
+	static constexpr const TCHAR* StaticConfigName() {return TEXT("Game");} \
+ \
 	virtual UObject* _getUObject() const override { return const_cast<UVTBOWTEditorSubsystem*>(this); }
 
 

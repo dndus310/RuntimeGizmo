@@ -1,0 +1,96 @@
+{
+	"generator": "CreateOWTPlayground",
+	"version": 1,
+	"complete": true,
+	"mainEditableActors": 54,
+	"stressEditableActors": 600,
+	"gameMode": "/Script/simple_proj.OWTPlaygroundGameMode",
+	"editableTag": "OWT.Playground.Editable",
+	"environmentTag": "OWT.Playground.Environment",
+	"pcgGraph": "/OWTRuntimeEditing/Tests/PCG_OWTDuplicate",
+	"pcgTrigger": "Blueprint/Stress: GenerateOnDemand; Main placed instances: GenerateOnLoad",
+	"physicsSimulationInitiallyEnabled": false,
+	"editableVariables": "FixtureLabel:string, Revision:int, Accent:LinearColor",
+	"constructionGraph": "BP_OWTLightRig: WarmPoint.SetLightColor(Accent)",
+	"assets": [
+		"/Game/OWTPlayground/Materials/M_OWTPlaygroundSurface",
+		"/Game/OWTPlayground/Materials/MI_OWTCoral",
+		"/Game/OWTPlayground/Materials/MI_OWTAzure",
+		"/Game/OWTPlayground/Materials/MI_OWTAmber",
+		"/Game/OWTPlayground/Materials/MI_OWTMint",
+		"/Game/OWTPlayground/Materials/MI_OWTViolet",
+		"/Game/OWTPlayground/Materials/MI_OWTCyan",
+		"/Game/OWTPlayground/Materials/MI_OWTRose",
+		"/Game/OWTPlayground/Materials/MI_OWTLime",
+		"/Game/OWTPlayground/Materials/MI_OWTPorcelain",
+		"/Game/OWTPlayground/Materials/MI_OWTSlate",
+		"/Game/OWTPlayground/Materials/MI_OWTBackdrop",
+		"/Game/OWTPlayground/Blueprints/BP_OWTColorBlock",
+		"/Game/OWTPlayground/Blueprints/BP_OWTStackedSculpture",
+		"/Game/OWTPlayground/Blueprints/BP_OWTLightRig",
+		"/Game/OWTPlayground/Blueprints/BP_OWTInstanceArray",
+		"/Game/OWTPlayground/Blueprints/BP_OWTHierarchicalArray",
+		"/Game/OWTPlayground/Blueprints/BP_OWTSplineDisplay",
+		"/Game/OWTPlayground/Blueprints/BP_OWTChildAssembly",
+		"/Game/OWTPlayground/Blueprints/BP_OWTPhysicsProp",
+		"/Game/OWTPlayground/Blueprints/BP_OWTPCGDisplay",
+		"/Game/OWTPlayground/Maps/L_OWTPlayground",
+		"/Game/OWTPlayground/Maps/L_OWTStress"
+	],
+	"archetypes": [
+		{
+			"name": "ColorBlock",
+			"blueprint": "/Game/OWTPlayground/Blueprints/BP_OWTColorBlock",
+			"tag": "OWT.Fixture.ColorBlock",
+			"components": "Movable mesh  /  collision  /  material"
+		},
+		{
+			"name": "StackedSculpture",
+			"blueprint": "/Game/OWTPlayground/Blueprints/BP_OWTStackedSculpture",
+			"tag": "OWT.Fixture.StackedSculpture",
+			"components": "Nested scene nodes  /  mixed local transforms"
+		},
+		{
+			"name": "LightRig",
+			"blueprint": "/Game/OWTPlayground/Blueprints/BP_OWTLightRig",
+			"tag": "OWT.Fixture.LightRig",
+			"components": "Point + spot lights  /  shadow-free accents"
+		},
+		{
+			"name": "InstanceArray",
+			"blueprint": "/Game/OWTPlayground/Blueprints/BP_OWTInstanceArray",
+			"tag": "OWT.Fixture.InstanceArray",
+			"components": "Six independent ISM instances"
+		},
+		{
+			"name": "HierarchicalArray",
+			"blueprint": "/Game/OWTPlayground/Blueprints/BP_OWTHierarchicalArray",
+			"tag": "OWT.Fixture.HierarchicalArray",
+			"components": "Nine instances  /  hierarchical component"
+		},
+		{
+			"name": "SplineDisplay",
+			"blueprint": "/Game/OWTPlayground/Blueprints/BP_OWTSplineDisplay",
+			"tag": "OWT.Fixture.SplineDisplay",
+			"components": "Four control points  /  authored mesh markers"
+		},
+		{
+			"name": "ChildAssembly",
+			"blueprint": "/Game/OWTPlayground/Blueprints/BP_OWTChildAssembly",
+			"tag": "OWT.Fixture.ChildAssembly",
+			"components": "Owned Blueprint child  /  assembly transform"
+		},
+		{
+			"name": "PhysicsProp",
+			"blueprint": "/Game/OWTPlayground/Blueprints/BP_OWTPhysicsProp",
+			"tag": "OWT.Fixture.PhysicsProp",
+			"components": "Physics-ready body  /  simulation off for editing"
+		},
+		{
+			"name": "PCGDisplay",
+			"blueprint": "/Game/OWTPlayground/Blueprints/BP_OWTPCGDisplay",
+			"tag": "OWT.Fixture.PCGDisplay",
+			"components": "PCG configuration  /  generate on demand"
+		}
+	]
+}

@@ -13,11 +13,10 @@ static_assert(!UE_WITH_CONSTINIT_UOBJECT, "This generated code can only be compi
 void EmptyLinkFunctionForGeneratedCodeVTBOWTObjectEditMode() {}
 
 // ********** Begin Cross Module References ********************************************************
-COREUOBJECT_API UClass* Z_Construct_UClass_UObject();
 COREUOBJECT_API UClass* Z_Construct_UClass_UObject_NoRegister();
 COREUOBJECT_API UClass* Z_Construct_UClass_UScriptStruct_NoRegister();
 UPackage* Z_Construct_UPackage__Script_VTBOWTEditor();
-VTBOWTEDITOR_API UClass* Z_Construct_UClass_UOWTEditContextReceiver_NoRegister();
+VTBOWTEDITOR_API UClass* Z_Construct_UClass_UOWTAttributeEditMode();
 VTBOWTEDITOR_API UClass* Z_Construct_UClass_UVTBOWTObjectEditMode();
 VTBOWTEDITOR_API UClass* Z_Construct_UClass_UVTBOWTObjectEditMode_NoRegister();
 VTBOWTEDITOR_API UScriptStruct* Z_Construct_UScriptStruct_FOWTContextHandlerBinding();
@@ -1078,7 +1077,6 @@ struct Z_Construct_UClass_UVTBOWTObjectEditMode_Statics
 		{ &Z_Construct_UFunction_UVTBOWTObjectEditMode_Undo, "Undo" }, // 3970763864
 	};
 	static_assert(UE_ARRAY_COUNT(FuncInfo) < 2048);
-	static const UECodeGen_Private::FImplementedInterfaceParams InterfaceParams[];
 	static constexpr FCppClassTypeInfoStatic StaticCppClassTypeInfo = {
 		TCppClassTypeTraits<UVTBOWTObjectEditMode>::IsAbstract,
 	};
@@ -1097,13 +1095,10 @@ const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UClass_UVTBOWTOb
 static_assert(UE_ARRAY_COUNT(Z_Construct_UClass_UVTBOWTObjectEditMode_Statics::PropPointers) < 2048);
 // ********** End Class UVTBOWTObjectEditMode Property Definitions *********************************
 UObject* (*const Z_Construct_UClass_UVTBOWTObjectEditMode_Statics::DependentSingletons[])() = {
-	(UObject* (*)())Z_Construct_UClass_UObject,
+	(UObject* (*)())Z_Construct_UClass_UOWTAttributeEditMode,
 	(UObject* (*)())Z_Construct_UPackage__Script_VTBOWTEditor,
 };
 static_assert(UE_ARRAY_COUNT(Z_Construct_UClass_UVTBOWTObjectEditMode_Statics::DependentSingletons) < 16);
-const UECodeGen_Private::FImplementedInterfaceParams Z_Construct_UClass_UVTBOWTObjectEditMode_Statics::InterfaceParams[] = {
-	{ Z_Construct_UClass_UOWTEditContextReceiver_NoRegister, (int32)VTABLE_OFFSET(UVTBOWTObjectEditMode, IOWTEditContextReceiver), false },  // 1559580018
-};
 const UECodeGen_Private::FClassParams Z_Construct_UClass_UVTBOWTObjectEditMode_Statics::ClassParams = {
 	&UVTBOWTObjectEditMode::StaticClass,
 	nullptr,
@@ -1111,11 +1106,11 @@ const UECodeGen_Private::FClassParams Z_Construct_UClass_UVTBOWTObjectEditMode_S
 	DependentSingletons,
 	FuncInfo,
 	Z_Construct_UClass_UVTBOWTObjectEditMode_Statics::PropPointers,
-	InterfaceParams,
+	nullptr,
 	UE_ARRAY_COUNT(DependentSingletons),
 	UE_ARRAY_COUNT(FuncInfo),
 	UE_ARRAY_COUNT(Z_Construct_UClass_UVTBOWTObjectEditMode_Statics::PropPointers),
-	UE_ARRAY_COUNT(InterfaceParams),
+	0,
 	0x001000A0u,
 	METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UClass_UVTBOWTObjectEditMode_Statics::Class_MetaDataParams), Z_Construct_UClass_UVTBOWTObjectEditMode_Statics::Class_MetaDataParams)
 };
@@ -1143,10 +1138,10 @@ struct Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Versio
 		{ FOWTContextHandlerBinding::StaticStruct, Z_Construct_UScriptStruct_FOWTContextHandlerBinding_Statics::NewStructOps, TEXT("OWTContextHandlerBinding"),&Z_Registration_Info_UScriptStruct_FOWTContextHandlerBinding, CONSTRUCT_RELOAD_VERSION_INFO(FStructReloadVersionInfo, sizeof(FOWTContextHandlerBinding), 3647425897U) },
 	};
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
-		{ Z_Construct_UClass_UVTBOWTObjectEditMode, UVTBOWTObjectEditMode::StaticClass, TEXT("UVTBOWTObjectEditMode"), &Z_Registration_Info_UClass_UVTBOWTObjectEditMode, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UVTBOWTObjectEditMode), 3834001608U) },
+		{ Z_Construct_UClass_UVTBOWTObjectEditMode, UVTBOWTObjectEditMode::StaticClass, TEXT("UVTBOWTObjectEditMode"), &Z_Registration_Info_UClass_UVTBOWTObjectEditMode, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UVTBOWTObjectEditMode), 3095699129U) },
 	};
 }; // Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_Modes_VTBOWTObjectEditMode_h__Script_VTBOWTEditor_Statics 
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_Modes_VTBOWTObjectEditMode_h__Script_VTBOWTEditor_2449331570{
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_Modes_VTBOWTObjectEditMode_h__Script_VTBOWTEditor_28973215{
 	TEXT("/Script/VTBOWTEditor"),
 	Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_Modes_VTBOWTObjectEditMode_h__Script_VTBOWTEditor_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_Modes_VTBOWTObjectEditMode_h__Script_VTBOWTEditor_Statics::ClassInfo),
 	Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_Modes_VTBOWTObjectEditMode_h__Script_VTBOWTEditor_Statics::ScriptStructInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_Modes_VTBOWTObjectEditMode_h__Script_VTBOWTEditor_Statics::ScriptStructInfo),

@@ -1,0 +1,42 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\source\\owtstatemonitor\\private\\owtstatemonitorwidget.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\intermediate\\build\\win64\\x64\\simple_projeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.valexpapi.cpp20.h.pch",
+        "Includes": [
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\owtstatemonitor\\definitions.owtstatemonitor.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\source\\owtstatemonitor\\public\\owtstatemonitorwidget.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\umg\\public\\components\\widget.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\umg\\public\\binding\\states\\widgetstatebitfield.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\umg\\uht\\widgetstatebitfield.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\fieldnotification\\public\\fieldnotificationdeclaration.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\fieldnotification\\public\\ifieldnotificationclassdescriptor.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\fieldnotification\\public\\inotifyfieldvaluechanged.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\fieldnotification\\uht\\inotifyfieldvaluechanged.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\umg\\public\\components\\visual.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\umg\\uht\\visual.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\umg\\public\\components\\slatewrappertypes.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\umg\\uht\\slatewrappertypes.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\umg\\public\\slate\\widgettransform.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\umg\\uht\\widgettransform.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\umg\\public\\blueprint\\widgetnavigation.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\coreuobject\\public\\structutils\\instancedstruct.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\coreuobject\\public\\structutils\\structutils.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\coreuobject\\uht\\instancedstruct.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slatecore\\public\\types\\navigationmetadata.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slatecore\\public\\input\\navigationrouting.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\slatecore\\uht\\navigationrouting.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slatecore\\public\\input\\navigationmethod.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slatecore\\public\\input\\hittestgrid.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\slatecore\\uht\\navigationmethod.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\umg\\uht\\widgetnavigation.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\umg\\uht\\widget.generated.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\intermediate\\build\\win64\\unrealeditor\\inc\\owtstatemonitor\\uht\\owtstatemonitorwidget.generated.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\source\\owtstatemonitor\\public\\owtstatemonitormodel.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\source\\owtstatemonitor\\public\\sowtstatemonitor.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

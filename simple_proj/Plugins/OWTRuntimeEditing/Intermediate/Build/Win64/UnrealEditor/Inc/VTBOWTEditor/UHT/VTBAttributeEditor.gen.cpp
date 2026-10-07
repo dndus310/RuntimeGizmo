@@ -7,8 +7,11 @@
 #include "UObject/GeneratedCppIncludes.h"
 #include "VTBAttributeEditor.h"
 #include "Context/SaveTransformContext.h"
+#include "Duplication/OWTDuplicationRequest.h"
 #include "Events/OWTAttributeTypes.h"
 #include "Events/OWTEventTypes.h"
+#include "Extensions/OWTToolDescriptor.h"
+#include "State/OWTEditingSessionTypes.h"
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 static_assert(!UE_WITH_CONSTINIT_UOBJECT, "This generated code can only be compiled with !UE_WITH_CONSTINIT_OBJECT");
@@ -22,7 +25,6 @@ ENGINE_API UClass* Z_Construct_UClass_AActor();
 OWTEVENTCORE_API UClass* Z_Construct_UClass_UOWTNotificationCenter_NoRegister();
 OWTEVENTCORE_API UFunction* Z_Construct_UDelegateFunction_OWTEventCore_OWTAttributeEventDynamic__DelegateSignature();
 OWTEVENTCORE_API UScriptStruct* Z_Construct_UScriptStruct_FOWTEventRecord();
-OWTRUNTIMEDUPLICATION_API UClass* Z_Construct_UClass_UOWTRuntimeActorDuplicator_NoRegister();
 UPackage* Z_Construct_UPackage__Script_VTBOWTEditor();
 VTBOWTEDITOR_API UClass* Z_Construct_UClass_AVTBAttributeEditor();
 VTBOWTEDITOR_API UClass* Z_Construct_UClass_AVTBAttributeEditor_NoRegister();
@@ -30,8 +32,306 @@ VTBOWTEDITOR_API UClass* Z_Construct_UClass_UOWTAttributeStateStore_NoRegister()
 VTBOWTEDITOR_API UEnum* Z_Construct_UEnum_VTBOWTEditor_EOWTTransformEditPhase();
 VTBOWTEDITOR_API UEnum* Z_Construct_UEnum_VTBOWTEditor_EOWTTransformField();
 VTBOWTEDITOR_API UScriptStruct* Z_Construct_UScriptStruct_FOWTAttributeSnapshot();
+VTBOWTEDITOR_API UScriptStruct* Z_Construct_UScriptStruct_FOWTDuplicationOperationSnapshot();
+VTBOWTEDITOR_API UScriptStruct* Z_Construct_UScriptStruct_FOWTDuplicationOptions();
+VTBOWTEDITOR_API UScriptStruct* Z_Construct_UScriptStruct_FOWTModeSnapshot();
+VTBOWTEDITOR_API UScriptStruct* Z_Construct_UScriptStruct_FOWTProceduralComponentSnapshot();
+VTBOWTEDITOR_API UScriptStruct* Z_Construct_UScriptStruct_FOWTToolAvailability();
 VTBOWTEDITOR_API UScriptStruct* Z_Construct_UScriptStruct_FSaveTransformContext();
 // ********** End Cross Module References **********************************************************
+
+// ********** Begin Class AVTBAttributeEditor Function BeginDuplicateOperation *********************
+struct Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics
+{
+	struct VTBAttributeEditor_eventBeginDuplicateOperation_Parms
+	{
+		FOWTAttributeSnapshot Expected;
+		FOWTDuplicationOptions Options;
+		FGuid ReturnValue;
+	};
+#if WITH_METADATA
+	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+		{ "Category", "OWT|Attributes" },
+#if !UE_BUILD_SHIPPING
+		{ "Comment", "/** Returns an accepted operation ID. Observe its state for authored commit and procedural readiness. */" },
+#endif
+		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
+#if !UE_BUILD_SHIPPING
+		{ "ToolTip", "Returns an accepted operation ID. Observe its state for authored commit and procedural readiness." },
+#endif
+	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_Expected_MetaData[] = {
+		{ "NativeConst", "" },
+	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_Options_MetaData[] = {
+		{ "NativeConst", "" },
+	};
+#endif // WITH_METADATA
+
+// ********** Begin Function BeginDuplicateOperation constinit property declarations ***************
+	static const UECodeGen_Private::FStructPropertyParams NewProp_Expected;
+	static const UECodeGen_Private::FStructPropertyParams NewProp_Options;
+	static const UECodeGen_Private::FStructPropertyParams NewProp_ReturnValue;
+	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+// ********** End Function BeginDuplicateOperation constinit property declarations *****************
+	static const UECodeGen_Private::FFunctionParams FuncParams;
+};
+
+// ********** Begin Function BeginDuplicateOperation Property Definitions **************************
+const UECodeGen_Private::FStructPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::NewProp_Expected = { "Expected", nullptr, (EPropertyFlags)0x0010000008000182, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(VTBAttributeEditor_eventBeginDuplicateOperation_Parms, Expected), Z_Construct_UScriptStruct_FOWTAttributeSnapshot, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_Expected_MetaData), NewProp_Expected_MetaData) }; // 1151875563
+const UECodeGen_Private::FStructPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::NewProp_Options = { "Options", nullptr, (EPropertyFlags)0x0010000008000182, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(VTBAttributeEditor_eventBeginDuplicateOperation_Parms, Options), Z_Construct_UScriptStruct_FOWTDuplicationOptions, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_Options_MetaData), NewProp_Options_MetaData) }; // 1929535697
+const UECodeGen_Private::FStructPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(VTBAttributeEditor_eventBeginDuplicateOperation_Parms, ReturnValue), Z_Construct_UScriptStruct_FGuid, METADATA_PARAMS(0, nullptr) };
+const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::NewProp_Expected,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::NewProp_Options,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::NewProp_ReturnValue,
+};
+static_assert(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::PropPointers) < 2048);
+// ********** End Function BeginDuplicateOperation Property Definitions ****************************
+const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::FuncParams = { { (UObject*(*)())Z_Construct_UClass_AVTBAttributeEditor, nullptr, "BeginDuplicateOperation", 	Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::PropPointers, 
+	UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::PropPointers), 
+sizeof(Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::VTBAttributeEditor_eventBeginDuplicateOperation_Parms),
+RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x04C20401, 0, 0, METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::Function_MetaDataParams), Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::Function_MetaDataParams)},  };
+static_assert(sizeof(Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::VTBAttributeEditor_eventBeginDuplicateOperation_Parms) < MAX_uint16);
+UFunction* Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation()
+{
+	static UFunction* ReturnFunction = nullptr;
+	if (!ReturnFunction)
+	{
+		UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation_Statics::FuncParams);
+	}
+	return ReturnFunction;
+}
+DEFINE_FUNCTION(AVTBAttributeEditor::execBeginDuplicateOperation)
+{
+	P_GET_STRUCT_REF(FOWTAttributeSnapshot,Z_Param_Out_Expected);
+	P_GET_STRUCT_REF(FOWTDuplicationOptions,Z_Param_Out_Options);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(FGuid*)Z_Param__Result=P_THIS->BeginDuplicateOperation(Z_Param_Out_Expected,Z_Param_Out_Options);
+	P_NATIVE_END;
+}
+// ********** End Class AVTBAttributeEditor Function BeginDuplicateOperation ***********************
+
+// ********** Begin Class AVTBAttributeEditor Function CanAcceptActiveTool *************************
+struct Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics
+{
+	struct VTBAttributeEditor_eventCanAcceptActiveTool_Parms
+	{
+		bool ReturnValue;
+	};
+#if WITH_METADATA
+	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+		{ "Category", "OWT|Tools" },
+		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
+	};
+#endif // WITH_METADATA
+
+// ********** Begin Function CanAcceptActiveTool constinit property declarations *******************
+	static void NewProp_ReturnValue_SetBit(void* Obj);
+	static const UECodeGen_Private::FBoolPropertyParams NewProp_ReturnValue;
+	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+// ********** End Function CanAcceptActiveTool constinit property declarations *********************
+	static const UECodeGen_Private::FFunctionParams FuncParams;
+};
+
+// ********** Begin Function CanAcceptActiveTool Property Definitions ******************************
+void Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::NewProp_ReturnValue_SetBit(void* Obj)
+{
+	((VTBAttributeEditor_eventCanAcceptActiveTool_Parms*)Obj)->ReturnValue = 1;
+}
+const UECodeGen_Private::FBoolPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(VTBAttributeEditor_eventCanAcceptActiveTool_Parms), &Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::NewProp_ReturnValue_SetBit, METADATA_PARAMS(0, nullptr) };
+const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::NewProp_ReturnValue,
+};
+static_assert(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::PropPointers) < 2048);
+// ********** End Function CanAcceptActiveTool Property Definitions ********************************
+const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::FuncParams = { { (UObject*(*)())Z_Construct_UClass_AVTBAttributeEditor, nullptr, "CanAcceptActiveTool", 	Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::PropPointers, 
+	UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::PropPointers), 
+sizeof(Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::VTBAttributeEditor_eventCanAcceptActiveTool_Parms),
+RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x54020401, 0, 0, METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::Function_MetaDataParams), Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::Function_MetaDataParams)},  };
+static_assert(sizeof(Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::VTBAttributeEditor_eventCanAcceptActiveTool_Parms) < MAX_uint16);
+UFunction* Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool()
+{
+	static UFunction* ReturnFunction = nullptr;
+	if (!ReturnFunction)
+	{
+		UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool_Statics::FuncParams);
+	}
+	return ReturnFunction;
+}
+DEFINE_FUNCTION(AVTBAttributeEditor::execCanAcceptActiveTool)
+{
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(bool*)Z_Param__Result=P_THIS->CanAcceptActiveTool();
+	P_NATIVE_END;
+}
+// ********** End Class AVTBAttributeEditor Function CanAcceptActiveTool ***************************
+
+// ********** Begin Class AVTBAttributeEditor Function CanCancelActiveTool *************************
+struct Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics
+{
+	struct VTBAttributeEditor_eventCanCancelActiveTool_Parms
+	{
+		bool ReturnValue;
+	};
+#if WITH_METADATA
+	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+		{ "Category", "OWT|Tools" },
+		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
+	};
+#endif // WITH_METADATA
+
+// ********** Begin Function CanCancelActiveTool constinit property declarations *******************
+	static void NewProp_ReturnValue_SetBit(void* Obj);
+	static const UECodeGen_Private::FBoolPropertyParams NewProp_ReturnValue;
+	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+// ********** End Function CanCancelActiveTool constinit property declarations *********************
+	static const UECodeGen_Private::FFunctionParams FuncParams;
+};
+
+// ********** Begin Function CanCancelActiveTool Property Definitions ******************************
+void Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::NewProp_ReturnValue_SetBit(void* Obj)
+{
+	((VTBAttributeEditor_eventCanCancelActiveTool_Parms*)Obj)->ReturnValue = 1;
+}
+const UECodeGen_Private::FBoolPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(VTBAttributeEditor_eventCanCancelActiveTool_Parms), &Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::NewProp_ReturnValue_SetBit, METADATA_PARAMS(0, nullptr) };
+const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::NewProp_ReturnValue,
+};
+static_assert(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::PropPointers) < 2048);
+// ********** End Function CanCancelActiveTool Property Definitions ********************************
+const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::FuncParams = { { (UObject*(*)())Z_Construct_UClass_AVTBAttributeEditor, nullptr, "CanCancelActiveTool", 	Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::PropPointers, 
+	UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::PropPointers), 
+sizeof(Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::VTBAttributeEditor_eventCanCancelActiveTool_Parms),
+RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x54020401, 0, 0, METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::Function_MetaDataParams), Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::Function_MetaDataParams)},  };
+static_assert(sizeof(Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::VTBAttributeEditor_eventCanCancelActiveTool_Parms) < MAX_uint16);
+UFunction* Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool()
+{
+	static UFunction* ReturnFunction = nullptr;
+	if (!ReturnFunction)
+	{
+		UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool_Statics::FuncParams);
+	}
+	return ReturnFunction;
+}
+DEFINE_FUNCTION(AVTBAttributeEditor::execCanCancelActiveTool)
+{
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(bool*)Z_Param__Result=P_THIS->CanCancelActiveTool();
+	P_NATIVE_END;
+}
+// ********** End Class AVTBAttributeEditor Function CanCancelActiveTool ***************************
+
+// ********** Begin Class AVTBAttributeEditor Function GetAvailableTools ***************************
+struct Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics
+{
+	struct VTBAttributeEditor_eventGetAvailableTools_Parms
+	{
+		TArray<FOWTToolAvailability> ReturnValue;
+	};
+#if WITH_METADATA
+	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+		{ "Category", "OWT|Tools" },
+		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
+	};
+#endif // WITH_METADATA
+
+// ********** Begin Function GetAvailableTools constinit property declarations *********************
+	static const UECodeGen_Private::FStructPropertyParams NewProp_ReturnValue_Inner;
+	static const UECodeGen_Private::FArrayPropertyParams NewProp_ReturnValue;
+	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+// ********** End Function GetAvailableTools constinit property declarations ***********************
+	static const UECodeGen_Private::FFunctionParams FuncParams;
+};
+
+// ********** Begin Function GetAvailableTools Property Definitions ********************************
+const UECodeGen_Private::FStructPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::NewProp_ReturnValue_Inner = { "ReturnValue", nullptr, (EPropertyFlags)0x0000000000000000, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, 0, Z_Construct_UScriptStruct_FOWTToolAvailability, METADATA_PARAMS(0, nullptr) }; // 3209918832
+const UECodeGen_Private::FArrayPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UECodeGen_Private::EPropertyGenFlags::Array, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(VTBAttributeEditor_eventGetAvailableTools_Parms, ReturnValue), EArrayPropertyFlags::None, METADATA_PARAMS(0, nullptr) }; // 3209918832
+const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::NewProp_ReturnValue_Inner,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::NewProp_ReturnValue,
+};
+static_assert(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::PropPointers) < 2048);
+// ********** End Function GetAvailableTools Property Definitions **********************************
+const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::FuncParams = { { (UObject*(*)())Z_Construct_UClass_AVTBAttributeEditor, nullptr, "GetAvailableTools", 	Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::PropPointers, 
+	UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::PropPointers), 
+sizeof(Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::VTBAttributeEditor_eventGetAvailableTools_Parms),
+RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x54020401, 0, 0, METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::Function_MetaDataParams), Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::Function_MetaDataParams)},  };
+static_assert(sizeof(Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::VTBAttributeEditor_eventGetAvailableTools_Parms) < MAX_uint16);
+UFunction* Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools()
+{
+	static UFunction* ReturnFunction = nullptr;
+	if (!ReturnFunction)
+	{
+		UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools_Statics::FuncParams);
+	}
+	return ReturnFunction;
+}
+DEFINE_FUNCTION(AVTBAttributeEditor::execGetAvailableTools)
+{
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(TArray<FOWTToolAvailability>*)Z_Param__Result=P_THIS->GetAvailableTools();
+	P_NATIVE_END;
+}
+// ********** End Class AVTBAttributeEditor Function GetAvailableTools *****************************
+
+// ********** Begin Class AVTBAttributeEditor Function GetDuplicationOperations ********************
+struct Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics
+{
+	struct VTBAttributeEditor_eventGetDuplicationOperations_Parms
+	{
+		TArray<FOWTDuplicationOperationSnapshot> ReturnValue;
+	};
+#if WITH_METADATA
+	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+		{ "Category", "OWT|Monitor" },
+		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
+	};
+#endif // WITH_METADATA
+
+// ********** Begin Function GetDuplicationOperations constinit property declarations **************
+	static const UECodeGen_Private::FStructPropertyParams NewProp_ReturnValue_Inner;
+	static const UECodeGen_Private::FArrayPropertyParams NewProp_ReturnValue;
+	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+// ********** End Function GetDuplicationOperations constinit property declarations ****************
+	static const UECodeGen_Private::FFunctionParams FuncParams;
+};
+
+// ********** Begin Function GetDuplicationOperations Property Definitions *************************
+const UECodeGen_Private::FStructPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::NewProp_ReturnValue_Inner = { "ReturnValue", nullptr, (EPropertyFlags)0x0000000000000000, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, 0, Z_Construct_UScriptStruct_FOWTDuplicationOperationSnapshot, METADATA_PARAMS(0, nullptr) }; // 2137892919
+const UECodeGen_Private::FArrayPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UECodeGen_Private::EPropertyGenFlags::Array, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(VTBAttributeEditor_eventGetDuplicationOperations_Parms, ReturnValue), EArrayPropertyFlags::None, METADATA_PARAMS(0, nullptr) }; // 2137892919
+const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::NewProp_ReturnValue_Inner,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::NewProp_ReturnValue,
+};
+static_assert(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::PropPointers) < 2048);
+// ********** End Function GetDuplicationOperations Property Definitions ***************************
+const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::FuncParams = { { (UObject*(*)())Z_Construct_UClass_AVTBAttributeEditor, nullptr, "GetDuplicationOperations", 	Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::PropPointers, 
+	UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::PropPointers), 
+sizeof(Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::VTBAttributeEditor_eventGetDuplicationOperations_Parms),
+RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x54020401, 0, 0, METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::Function_MetaDataParams), Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::Function_MetaDataParams)},  };
+static_assert(sizeof(Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::VTBAttributeEditor_eventGetDuplicationOperations_Parms) < MAX_uint16);
+UFunction* Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations()
+{
+	static UFunction* ReturnFunction = nullptr;
+	if (!ReturnFunction)
+	{
+		UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations_Statics::FuncParams);
+	}
+	return ReturnFunction;
+}
+DEFINE_FUNCTION(AVTBAttributeEditor::execGetDuplicationOperations)
+{
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(TArray<FOWTDuplicationOperationSnapshot>*)Z_Param__Result=P_THIS->GetDuplicationOperations();
+	P_NATIVE_END;
+}
+// ********** End Class AVTBAttributeEditor Function GetDuplicationOperations **********************
 
 // ********** Begin Class AVTBAttributeEditor Function GetLatestEventSequence **********************
 struct Z_Construct_UFunction_AVTBAttributeEditor_GetLatestEventSequence_Statics
@@ -83,6 +383,63 @@ DEFINE_FUNCTION(AVTBAttributeEditor::execGetLatestEventSequence)
 	P_NATIVE_END;
 }
 // ********** End Class AVTBAttributeEditor Function GetLatestEventSequence ************************
+
+// ********** Begin Class AVTBAttributeEditor Function GetModeSnapshot *****************************
+struct Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics
+{
+	struct VTBAttributeEditor_eventGetModeSnapshot_Parms
+	{
+		FOWTModeSnapshot ReturnValue;
+	};
+#if WITH_METADATA
+	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+		{ "Category", "OWT|Monitor" },
+#if !UE_BUILD_SHIPPING
+		{ "Comment", "// Observed state and monitor history.\n" },
+#endif
+		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
+#if !UE_BUILD_SHIPPING
+		{ "ToolTip", "Observed state and monitor history." },
+#endif
+	};
+#endif // WITH_METADATA
+
+// ********** Begin Function GetModeSnapshot constinit property declarations ***********************
+	static const UECodeGen_Private::FStructPropertyParams NewProp_ReturnValue;
+	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+// ********** End Function GetModeSnapshot constinit property declarations *************************
+	static const UECodeGen_Private::FFunctionParams FuncParams;
+};
+
+// ********** Begin Function GetModeSnapshot Property Definitions **********************************
+const UECodeGen_Private::FStructPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(VTBAttributeEditor_eventGetModeSnapshot_Parms, ReturnValue), Z_Construct_UScriptStruct_FOWTModeSnapshot, METADATA_PARAMS(0, nullptr) }; // 1626674559
+const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::NewProp_ReturnValue,
+};
+static_assert(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::PropPointers) < 2048);
+// ********** End Function GetModeSnapshot Property Definitions ************************************
+const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::FuncParams = { { (UObject*(*)())Z_Construct_UClass_AVTBAttributeEditor, nullptr, "GetModeSnapshot", 	Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::PropPointers, 
+	UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::PropPointers), 
+sizeof(Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::VTBAttributeEditor_eventGetModeSnapshot_Parms),
+RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x54020401, 0, 0, METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::Function_MetaDataParams), Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::Function_MetaDataParams)},  };
+static_assert(sizeof(Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::VTBAttributeEditor_eventGetModeSnapshot_Parms) < MAX_uint16);
+UFunction* Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot()
+{
+	static UFunction* ReturnFunction = nullptr;
+	if (!ReturnFunction)
+	{
+		UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot_Statics::FuncParams);
+	}
+	return ReturnFunction;
+}
+DEFINE_FUNCTION(AVTBAttributeEditor::execGetModeSnapshot)
+{
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(FOWTModeSnapshot*)Z_Param__Result=P_THIS->GetModeSnapshot();
+	P_NATIVE_END;
+}
+// ********** End Class AVTBAttributeEditor Function GetModeSnapshot *******************************
 
 // ********** Begin Class AVTBAttributeEditor Function GetMonitorEntries ***************************
 struct Z_Construct_UFunction_AVTBAttributeEditor_GetMonitorEntries_Statics
@@ -143,6 +500,60 @@ DEFINE_FUNCTION(AVTBAttributeEditor::execGetMonitorEntries)
 	P_NATIVE_END;
 }
 // ********** End Class AVTBAttributeEditor Function GetMonitorEntries *****************************
+
+// ********** Begin Class AVTBAttributeEditor Function GetProceduralComponents *********************
+struct Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics
+{
+	struct VTBAttributeEditor_eventGetProceduralComponents_Parms
+	{
+		TArray<FOWTProceduralComponentSnapshot> ReturnValue;
+	};
+#if WITH_METADATA
+	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+		{ "Category", "OWT|Monitor" },
+		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
+	};
+#endif // WITH_METADATA
+
+// ********** Begin Function GetProceduralComponents constinit property declarations ***************
+	static const UECodeGen_Private::FStructPropertyParams NewProp_ReturnValue_Inner;
+	static const UECodeGen_Private::FArrayPropertyParams NewProp_ReturnValue;
+	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+// ********** End Function GetProceduralComponents constinit property declarations *****************
+	static const UECodeGen_Private::FFunctionParams FuncParams;
+};
+
+// ********** Begin Function GetProceduralComponents Property Definitions **************************
+const UECodeGen_Private::FStructPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::NewProp_ReturnValue_Inner = { "ReturnValue", nullptr, (EPropertyFlags)0x0000008000000000, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, 0, Z_Construct_UScriptStruct_FOWTProceduralComponentSnapshot, METADATA_PARAMS(0, nullptr) }; // 3712393560
+const UECodeGen_Private::FArrayPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010008000000580, UECodeGen_Private::EPropertyGenFlags::Array, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(VTBAttributeEditor_eventGetProceduralComponents_Parms, ReturnValue), EArrayPropertyFlags::None, METADATA_PARAMS(0, nullptr) }; // 3712393560
+const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::NewProp_ReturnValue_Inner,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::NewProp_ReturnValue,
+};
+static_assert(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::PropPointers) < 2048);
+// ********** End Function GetProceduralComponents Property Definitions ****************************
+const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::FuncParams = { { (UObject*(*)())Z_Construct_UClass_AVTBAttributeEditor, nullptr, "GetProceduralComponents", 	Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::PropPointers, 
+	UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::PropPointers), 
+sizeof(Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::VTBAttributeEditor_eventGetProceduralComponents_Parms),
+RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x54020401, 0, 0, METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::Function_MetaDataParams), Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::Function_MetaDataParams)},  };
+static_assert(sizeof(Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::VTBAttributeEditor_eventGetProceduralComponents_Parms) < MAX_uint16);
+UFunction* Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents()
+{
+	static UFunction* ReturnFunction = nullptr;
+	if (!ReturnFunction)
+	{
+		UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents_Statics::FuncParams);
+	}
+	return ReturnFunction;
+}
+DEFINE_FUNCTION(AVTBAttributeEditor::execGetProceduralComponents)
+{
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(TArray<FOWTProceduralComponentSnapshot>*)Z_Param__Result=P_THIS->GetProceduralComponents();
+	P_NATIVE_END;
+}
+// ********** End Class AVTBAttributeEditor Function GetProceduralComponents ***********************
 
 // ********** Begin Class AVTBAttributeEditor Function GetSnapshot *********************************
 struct Z_Construct_UFunction_AVTBAttributeEditor_GetSnapshot_Statics
@@ -482,6 +893,139 @@ DEFINE_FUNCTION(AVTBAttributeEditor::execRequestDuplicate)
 }
 // ********** End Class AVTBAttributeEditor Function RequestDuplicate ******************************
 
+// ********** Begin Class AVTBAttributeEditor Function RequestEndTool ******************************
+struct Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics
+{
+	struct VTBAttributeEditor_eventRequestEndTool_Parms
+	{
+		bool bAccept;
+		bool ReturnValue;
+	};
+#if WITH_METADATA
+	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+		{ "Category", "OWT|Tools" },
+		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
+	};
+#endif // WITH_METADATA
+
+// ********** Begin Function RequestEndTool constinit property declarations ************************
+	static void NewProp_bAccept_SetBit(void* Obj);
+	static const UECodeGen_Private::FBoolPropertyParams NewProp_bAccept;
+	static void NewProp_ReturnValue_SetBit(void* Obj);
+	static const UECodeGen_Private::FBoolPropertyParams NewProp_ReturnValue;
+	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+// ********** End Function RequestEndTool constinit property declarations **************************
+	static const UECodeGen_Private::FFunctionParams FuncParams;
+};
+
+// ********** Begin Function RequestEndTool Property Definitions ***********************************
+void Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::NewProp_bAccept_SetBit(void* Obj)
+{
+	((VTBAttributeEditor_eventRequestEndTool_Parms*)Obj)->bAccept = 1;
+}
+const UECodeGen_Private::FBoolPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::NewProp_bAccept = { "bAccept", nullptr, (EPropertyFlags)0x0010000000000080, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(VTBAttributeEditor_eventRequestEndTool_Parms), &Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::NewProp_bAccept_SetBit, METADATA_PARAMS(0, nullptr) };
+void Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::NewProp_ReturnValue_SetBit(void* Obj)
+{
+	((VTBAttributeEditor_eventRequestEndTool_Parms*)Obj)->ReturnValue = 1;
+}
+const UECodeGen_Private::FBoolPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(VTBAttributeEditor_eventRequestEndTool_Parms), &Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::NewProp_ReturnValue_SetBit, METADATA_PARAMS(0, nullptr) };
+const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::NewProp_bAccept,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::NewProp_ReturnValue,
+};
+static_assert(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::PropPointers) < 2048);
+// ********** End Function RequestEndTool Property Definitions *************************************
+const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::FuncParams = { { (UObject*(*)())Z_Construct_UClass_AVTBAttributeEditor, nullptr, "RequestEndTool", 	Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::PropPointers, 
+	UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::PropPointers), 
+sizeof(Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::VTBAttributeEditor_eventRequestEndTool_Parms),
+RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x04020401, 0, 0, METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::Function_MetaDataParams), Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::Function_MetaDataParams)},  };
+static_assert(sizeof(Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::VTBAttributeEditor_eventRequestEndTool_Parms) < MAX_uint16);
+UFunction* Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool()
+{
+	static UFunction* ReturnFunction = nullptr;
+	if (!ReturnFunction)
+	{
+		UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool_Statics::FuncParams);
+	}
+	return ReturnFunction;
+}
+DEFINE_FUNCTION(AVTBAttributeEditor::execRequestEndTool)
+{
+	P_GET_UBOOL(Z_Param_bAccept);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(bool*)Z_Param__Result=P_THIS->RequestEndTool(Z_Param_bAccept);
+	P_NATIVE_END;
+}
+// ********** End Class AVTBAttributeEditor Function RequestEndTool ********************************
+
+// ********** Begin Class AVTBAttributeEditor Function RequestStartTool ****************************
+struct Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics
+{
+	struct VTBAttributeEditor_eventRequestStartTool_Parms
+	{
+		FName ToolId;
+		bool ReturnValue;
+	};
+#if WITH_METADATA
+	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+		{ "Category", "OWT|Tools" },
+#if !UE_BUILD_SHIPPING
+		{ "Comment", "// Tool control.\n" },
+#endif
+		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
+#if !UE_BUILD_SHIPPING
+		{ "ToolTip", "Tool control." },
+#endif
+	};
+#endif // WITH_METADATA
+
+// ********** Begin Function RequestStartTool constinit property declarations **********************
+	static const UECodeGen_Private::FNamePropertyParams NewProp_ToolId;
+	static void NewProp_ReturnValue_SetBit(void* Obj);
+	static const UECodeGen_Private::FBoolPropertyParams NewProp_ReturnValue;
+	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
+// ********** End Function RequestStartTool constinit property declarations ************************
+	static const UECodeGen_Private::FFunctionParams FuncParams;
+};
+
+// ********** Begin Function RequestStartTool Property Definitions *********************************
+const UECodeGen_Private::FNamePropertyParams Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::NewProp_ToolId = { "ToolId", nullptr, (EPropertyFlags)0x0010000000000080, UECodeGen_Private::EPropertyGenFlags::Name, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(VTBAttributeEditor_eventRequestStartTool_Parms, ToolId), METADATA_PARAMS(0, nullptr) };
+void Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::NewProp_ReturnValue_SetBit(void* Obj)
+{
+	((VTBAttributeEditor_eventRequestStartTool_Parms*)Obj)->ReturnValue = 1;
+}
+const UECodeGen_Private::FBoolPropertyParams Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(VTBAttributeEditor_eventRequestStartTool_Parms), &Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::NewProp_ReturnValue_SetBit, METADATA_PARAMS(0, nullptr) };
+const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::NewProp_ToolId,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::NewProp_ReturnValue,
+};
+static_assert(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::PropPointers) < 2048);
+// ********** End Function RequestStartTool Property Definitions ***********************************
+const UECodeGen_Private::FFunctionParams Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::FuncParams = { { (UObject*(*)())Z_Construct_UClass_AVTBAttributeEditor, nullptr, "RequestStartTool", 	Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::PropPointers, 
+	UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::PropPointers), 
+sizeof(Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::VTBAttributeEditor_eventRequestStartTool_Parms),
+RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x04020401, 0, 0, METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::Function_MetaDataParams), Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::Function_MetaDataParams)},  };
+static_assert(sizeof(Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::VTBAttributeEditor_eventRequestStartTool_Parms) < MAX_uint16);
+UFunction* Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool()
+{
+	static UFunction* ReturnFunction = nullptr;
+	if (!ReturnFunction)
+	{
+		UECodeGen_Private::ConstructUFunction(&ReturnFunction, Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool_Statics::FuncParams);
+	}
+	return ReturnFunction;
+}
+DEFINE_FUNCTION(AVTBAttributeEditor::execRequestStartTool)
+{
+	P_GET_PROPERTY(FNameProperty,Z_Param_ToolId);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(bool*)Z_Param__Result=P_THIS->RequestStartTool(Z_Param_ToolId);
+	P_NATIVE_END;
+}
+// ********** End Class AVTBAttributeEditor Function RequestStartTool ******************************
+
 // ********** Begin Class AVTBAttributeEditor Function RequestTransformField ***********************
 struct Z_Construct_UFunction_AVTBAttributeEditor_RequestTransformField_Statics
 {
@@ -686,8 +1230,14 @@ struct Z_Construct_UFunction_AVTBAttributeEditor_SubscribeDynamic_Statics
 #if WITH_METADATA
 	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
 		{ "Category", "OWT|Attributes" },
+#if !UE_BUILD_SHIPPING
+		{ "Comment", "// Event subscriptions and edit requests.\n" },
+#endif
 		{ "CPP_Default_bSendSnapshot", "true" },
 		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
+#if !UE_BUILD_SHIPPING
+		{ "ToolTip", "Event subscriptions and edit requests." },
+#endif
 	};
 	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_Callback_MetaData[] = {
 		{ "NativeConst", "" },
@@ -903,9 +1453,6 @@ struct Z_Construct_UClass_AVTBAttributeEditor_Statics
 	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_StateStore_MetaData[] = {
 		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
 	};
-	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_Duplicator_MetaData[] = {
-		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
-	};
 	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_DuplicateWorldOffset_MetaData[] = {
 		{ "Category", "OWT|Attributes" },
 		{ "ModuleRelativePath", "Public/VTBAttributeEditor.h" },
@@ -915,19 +1462,27 @@ struct Z_Construct_UClass_AVTBAttributeEditor_Statics
 // ********** Begin Class AVTBAttributeEditor constinit property declarations **********************
 	static const UECodeGen_Private::FObjectPropertyParams NewProp_Notifications;
 	static const UECodeGen_Private::FObjectPropertyParams NewProp_StateStore;
-	static const UECodeGen_Private::FObjectPropertyParams NewProp_Duplicator;
 	static const UECodeGen_Private::FStructPropertyParams NewProp_DuplicateWorldOffset;
 	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
 // ********** End Class AVTBAttributeEditor constinit property declarations ************************
 	static constexpr UE::CodeGen::FClassNativeFunction Funcs[] = {
+		{ .NameUTF8 = UTF8TEXT("BeginDuplicateOperation"), .Pointer = &AVTBAttributeEditor::execBeginDuplicateOperation },
+		{ .NameUTF8 = UTF8TEXT("CanAcceptActiveTool"), .Pointer = &AVTBAttributeEditor::execCanAcceptActiveTool },
+		{ .NameUTF8 = UTF8TEXT("CanCancelActiveTool"), .Pointer = &AVTBAttributeEditor::execCanCancelActiveTool },
+		{ .NameUTF8 = UTF8TEXT("GetAvailableTools"), .Pointer = &AVTBAttributeEditor::execGetAvailableTools },
+		{ .NameUTF8 = UTF8TEXT("GetDuplicationOperations"), .Pointer = &AVTBAttributeEditor::execGetDuplicationOperations },
 		{ .NameUTF8 = UTF8TEXT("GetLatestEventSequence"), .Pointer = &AVTBAttributeEditor::execGetLatestEventSequence },
+		{ .NameUTF8 = UTF8TEXT("GetModeSnapshot"), .Pointer = &AVTBAttributeEditor::execGetModeSnapshot },
 		{ .NameUTF8 = UTF8TEXT("GetMonitorEntries"), .Pointer = &AVTBAttributeEditor::execGetMonitorEntries },
+		{ .NameUTF8 = UTF8TEXT("GetProceduralComponents"), .Pointer = &AVTBAttributeEditor::execGetProceduralComponents },
 		{ .NameUTF8 = UTF8TEXT("GetSnapshot"), .Pointer = &AVTBAttributeEditor::execGetSnapshot },
 		{ .NameUTF8 = UTF8TEXT("MarkSelectionBaseline"), .Pointer = &AVTBAttributeEditor::execMarkSelectionBaseline },
 		{ .NameUTF8 = UTF8TEXT("ParseSnapshotJson"), .Pointer = &AVTBAttributeEditor::execParseSnapshotJson },
 		{ .NameUTF8 = UTF8TEXT("PublishRequest"), .Pointer = &AVTBAttributeEditor::execPublishRequest },
 		{ .NameUTF8 = UTF8TEXT("Redo"), .Pointer = &AVTBAttributeEditor::execRedo },
 		{ .NameUTF8 = UTF8TEXT("RequestDuplicate"), .Pointer = &AVTBAttributeEditor::execRequestDuplicate },
+		{ .NameUTF8 = UTF8TEXT("RequestEndTool"), .Pointer = &AVTBAttributeEditor::execRequestEndTool },
+		{ .NameUTF8 = UTF8TEXT("RequestStartTool"), .Pointer = &AVTBAttributeEditor::execRequestStartTool },
 		{ .NameUTF8 = UTF8TEXT("RequestTransformField"), .Pointer = &AVTBAttributeEditor::execRequestTransformField },
 		{ .NameUTF8 = UTF8TEXT("SaveHistory"), .Pointer = &AVTBAttributeEditor::execSaveHistory },
 		{ .NameUTF8 = UTF8TEXT("SaveHistoryFromTransformContext"), .Pointer = &AVTBAttributeEditor::execSaveHistoryFromTransformContext },
@@ -937,18 +1492,27 @@ struct Z_Construct_UClass_AVTBAttributeEditor_Statics
 	};
 	static UObject* (*const DependentSingletons[])();
 	static constexpr FClassFunctionLinkInfo FuncInfo[] = {
+		{ &Z_Construct_UFunction_AVTBAttributeEditor_BeginDuplicateOperation, "BeginDuplicateOperation" }, // 1578394600
+		{ &Z_Construct_UFunction_AVTBAttributeEditor_CanAcceptActiveTool, "CanAcceptActiveTool" }, // 2771677134
+		{ &Z_Construct_UFunction_AVTBAttributeEditor_CanCancelActiveTool, "CanCancelActiveTool" }, // 252352620
+		{ &Z_Construct_UFunction_AVTBAttributeEditor_GetAvailableTools, "GetAvailableTools" }, // 2638112321
+		{ &Z_Construct_UFunction_AVTBAttributeEditor_GetDuplicationOperations, "GetDuplicationOperations" }, // 1882122566
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_GetLatestEventSequence, "GetLatestEventSequence" }, // 841479116
+		{ &Z_Construct_UFunction_AVTBAttributeEditor_GetModeSnapshot, "GetModeSnapshot" }, // 3604742442
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_GetMonitorEntries, "GetMonitorEntries" }, // 1102329724
+		{ &Z_Construct_UFunction_AVTBAttributeEditor_GetProceduralComponents, "GetProceduralComponents" }, // 646869906
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_GetSnapshot, "GetSnapshot" }, // 4260423473
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_MarkSelectionBaseline, "MarkSelectionBaseline" }, // 861980488
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_ParseSnapshotJson, "ParseSnapshotJson" }, // 918682028
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_PublishRequest, "PublishRequest" }, // 3054175536
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_Redo, "Redo" }, // 3569955812
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_RequestDuplicate, "RequestDuplicate" }, // 3580465023
+		{ &Z_Construct_UFunction_AVTBAttributeEditor_RequestEndTool, "RequestEndTool" }, // 4235563405
+		{ &Z_Construct_UFunction_AVTBAttributeEditor_RequestStartTool, "RequestStartTool" }, // 3751076311
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_RequestTransformField, "RequestTransformField" }, // 3972053399
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_SaveHistory, "SaveHistory" }, // 3235824542
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_SaveHistoryFromTransformContext, "SaveHistoryFromTransformContext" }, // 72644076
-		{ &Z_Construct_UFunction_AVTBAttributeEditor_SubscribeDynamic, "SubscribeDynamic" }, // 742933633
+		{ &Z_Construct_UFunction_AVTBAttributeEditor_SubscribeDynamic, "SubscribeDynamic" }, // 755302323
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_Undo, "Undo" }, // 4198260269
 		{ &Z_Construct_UFunction_AVTBAttributeEditor_Unsubscribe, "Unsubscribe" }, // 1286936818
 	};
@@ -962,12 +1526,10 @@ struct Z_Construct_UClass_AVTBAttributeEditor_Statics
 // ********** Begin Class AVTBAttributeEditor Property Definitions *********************************
 const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_AVTBAttributeEditor_Statics::NewProp_Notifications = { "Notifications", nullptr, (EPropertyFlags)0x0144000000002000, UECodeGen_Private::EPropertyGenFlags::Object | UECodeGen_Private::EPropertyGenFlags::ObjectPtr, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AVTBAttributeEditor, Notifications), Z_Construct_UClass_UOWTNotificationCenter_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_Notifications_MetaData), NewProp_Notifications_MetaData) };
 const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_AVTBAttributeEditor_Statics::NewProp_StateStore = { "StateStore", nullptr, (EPropertyFlags)0x0144000000002000, UECodeGen_Private::EPropertyGenFlags::Object | UECodeGen_Private::EPropertyGenFlags::ObjectPtr, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AVTBAttributeEditor, StateStore), Z_Construct_UClass_UOWTAttributeStateStore_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_StateStore_MetaData), NewProp_StateStore_MetaData) };
-const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_AVTBAttributeEditor_Statics::NewProp_Duplicator = { "Duplicator", nullptr, (EPropertyFlags)0x0144000000002000, UECodeGen_Private::EPropertyGenFlags::Object | UECodeGen_Private::EPropertyGenFlags::ObjectPtr, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AVTBAttributeEditor, Duplicator), Z_Construct_UClass_UOWTRuntimeActorDuplicator_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_Duplicator_MetaData), NewProp_Duplicator_MetaData) };
 const UECodeGen_Private::FStructPropertyParams Z_Construct_UClass_AVTBAttributeEditor_Statics::NewProp_DuplicateWorldOffset = { "DuplicateWorldOffset", nullptr, (EPropertyFlags)0x0040000000000001, UECodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AVTBAttributeEditor, DuplicateWorldOffset), Z_Construct_UScriptStruct_FVector, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_DuplicateWorldOffset_MetaData), NewProp_DuplicateWorldOffset_MetaData) };
 const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UClass_AVTBAttributeEditor_Statics::PropPointers[] = {
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AVTBAttributeEditor_Statics::NewProp_Notifications,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AVTBAttributeEditor_Statics::NewProp_StateStore,
-	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AVTBAttributeEditor_Statics::NewProp_Duplicator,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AVTBAttributeEditor_Statics::NewProp_DuplicateWorldOffset,
 };
 static_assert(UE_ARRAY_COUNT(Z_Construct_UClass_AVTBAttributeEditor_Statics::PropPointers) < 2048);
@@ -1013,10 +1575,10 @@ AVTBAttributeEditor::~AVTBAttributeEditor() {}
 struct Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h__Script_VTBOWTEditor_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
-		{ Z_Construct_UClass_AVTBAttributeEditor, AVTBAttributeEditor::StaticClass, TEXT("AVTBAttributeEditor"), &Z_Registration_Info_UClass_AVTBAttributeEditor, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AVTBAttributeEditor), 704450568U) },
+		{ Z_Construct_UClass_AVTBAttributeEditor, AVTBAttributeEditor::StaticClass, TEXT("AVTBAttributeEditor"), &Z_Registration_Info_UClass_AVTBAttributeEditor, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AVTBAttributeEditor), 2924935518U) },
 	};
 }; // Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h__Script_VTBOWTEditor_Statics 
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h__Script_VTBOWTEditor_886305229{
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h__Script_VTBOWTEditor_1424624590{
 	TEXT("/Script/VTBOWTEditor"),
 	Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h__Script_VTBOWTEditor_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h__Script_VTBOWTEditor_Statics::ClassInfo),
 	nullptr, 0,

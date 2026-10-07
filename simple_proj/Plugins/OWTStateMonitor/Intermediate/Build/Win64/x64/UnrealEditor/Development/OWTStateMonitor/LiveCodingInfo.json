@@ -1,0 +1,17 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.OWTStateMonitor.cpp.obj": [
+			"OWTStateMonitor.init.gen.cpp.obj",
+			"OWTStateMonitorTestTypes.gen.cpp.obj",
+			"OWTStateMonitorWidget.gen.cpp.obj",
+			"PerModuleInline.gen.cpp.obj",
+			"OWTStateMonitorModel.cpp.obj",
+			"OWTStateMonitorModule.cpp.obj",
+			"OWTStateMonitorWidget.cpp.obj",
+			"SOWTStateMonitor.cpp.obj",
+			"OWTStateMonitorModelTests.cpp.obj",
+			"OWTStateMonitorViewTests.cpp.obj"
+		]
+	}
+}

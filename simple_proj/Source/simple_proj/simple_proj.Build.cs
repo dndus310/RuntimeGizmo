@@ -8,9 +8,9 @@ public class simple_proj : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "VTBOWTEditor" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "VTBOWTEditor", "OWTEventCore", "InteractiveToolsFramework" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "OWTEventCore", "InteractiveToolsFramework", "PCG", "Json", "RHI" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

@@ -8,7 +8,10 @@
 
 UInteractiveGizmo* UVTBOWTCustomTransformGizmoBuilder::BuildGizmo(const FToolBuilderState& SceneState) const
 {
-	check(SceneState.World && SceneState.ToolManager && SceneState.GizmoManager);
+	check(SceneState.World);
+	check(SceneState.ToolManager);
+	check(SceneState.GizmoManager);
+
 	UGizmoViewContext* ViewContext = SceneState.ToolManager->GetContextObjectStore()->FindContext<UGizmoViewContext>();
 	check(ViewContext);
 

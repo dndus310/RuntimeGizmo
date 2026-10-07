@@ -20,11 +20,16 @@ enum class EOWTTransformEditPhase : uint8;
 enum class EOWTTransformField : uint8;
 struct FGuid;
 struct FOWTAttributeSnapshot;
+struct FOWTDuplicationOperationSnapshot;
+struct FOWTDuplicationOptions;
 struct FOWTEventRecord;
+struct FOWTModeSnapshot;
+struct FOWTProceduralComponentSnapshot;
+struct FOWTToolAvailability;
 struct FSaveTransformContext;
 
 // ********** Begin Class AVTBAttributeEditor ******************************************************
-#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_18_RPC_WRAPPERS_NO_PURE_DECLS \
+#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_21_RPC_WRAPPERS_NO_PURE_DECLS \
 	virtual void Redo_Implementation(); \
 	virtual void Undo_Implementation(); \
 	DECLARE_FUNCTION(execRedo); \
@@ -36,6 +41,15 @@ struct FSaveTransformContext;
 	DECLARE_FUNCTION(execGetMonitorEntries); \
 	DECLARE_FUNCTION(execGetSnapshot); \
 	DECLARE_FUNCTION(execMarkSelectionBaseline); \
+	DECLARE_FUNCTION(execGetProceduralComponents); \
+	DECLARE_FUNCTION(execGetDuplicationOperations); \
+	DECLARE_FUNCTION(execGetModeSnapshot); \
+	DECLARE_FUNCTION(execGetAvailableTools); \
+	DECLARE_FUNCTION(execCanCancelActiveTool); \
+	DECLARE_FUNCTION(execCanAcceptActiveTool); \
+	DECLARE_FUNCTION(execRequestEndTool); \
+	DECLARE_FUNCTION(execRequestStartTool); \
+	DECLARE_FUNCTION(execBeginDuplicateOperation); \
 	DECLARE_FUNCTION(execRequestDuplicate); \
 	DECLARE_FUNCTION(execRequestTransformField); \
 	DECLARE_FUNCTION(execPublishRequest); \
@@ -43,11 +57,11 @@ struct FSaveTransformContext;
 	DECLARE_FUNCTION(execSubscribeDynamic);
 
 
-#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_18_CALLBACK_WRAPPERS
+#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_21_CALLBACK_WRAPPERS
 struct Z_Construct_UClass_AVTBAttributeEditor_Statics;
 VTBOWTEDITOR_API UClass* Z_Construct_UClass_AVTBAttributeEditor_NoRegister();
 
-#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_18_INCLASS_NO_PURE_DECLS \
+#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_21_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesAVTBAttributeEditor(); \
 	friend struct ::Z_Construct_UClass_AVTBAttributeEditor_Statics; \
@@ -58,7 +72,7 @@ public: \
 	DECLARE_SERIALIZER(AVTBAttributeEditor)
 
 
-#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_18_ENHANCED_CONSTRUCTORS \
+#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_21_ENHANCED_CONSTRUCTORS \
 	/** Deleted move- and copy-constructors, should never be used */ \
 	AVTBAttributeEditor(AVTBAttributeEditor&&) = delete; \
 	AVTBAttributeEditor(const AVTBAttributeEditor&) = delete; \
@@ -68,14 +82,14 @@ public: \
 	NO_API virtual ~AVTBAttributeEditor();
 
 
-#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_15_PROLOG
-#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_18_GENERATED_BODY \
+#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_18_PROLOG
+#define FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_21_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_18_RPC_WRAPPERS_NO_PURE_DECLS \
-	FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_18_CALLBACK_WRAPPERS \
-	FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_18_INCLASS_NO_PURE_DECLS \
-	FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_18_ENHANCED_CONSTRUCTORS \
+	FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_21_RPC_WRAPPERS_NO_PURE_DECLS \
+	FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_21_CALLBACK_WRAPPERS \
+	FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_21_INCLASS_NO_PURE_DECLS \
+	FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBAttributeEditor_h_21_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 

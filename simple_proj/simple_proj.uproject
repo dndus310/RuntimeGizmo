@@ -21,6 +21,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "PCG",
+			"Enabled": true
+		},
+		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true,
 			"TargetAllowList": [

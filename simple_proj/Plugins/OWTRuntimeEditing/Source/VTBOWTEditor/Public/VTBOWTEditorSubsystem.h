@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -17,14 +15,17 @@ class UCombinedTransformGizmo;
 class UVTBOWTBaseTransformGizmo;
 class UTransformProxy;
 class AVTBAttributeEditor;
+class UOWTAttributeEditMode;
+class UOWTAttributeEditTool;
 
-UCLASS()
+UCLASS(Config = Game)
 class VTBOWTEDITOR_API UVTBOWTEditorSubsystem : public UTickableWorldSubsystem, public IOWTEditContextReceiver
 {
 	GENERATED_BODY()
 
 public:
 	UVTBOWTEditorSubsystem();
+
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	virtual void OnWorldEndPlay(UWorld& InWorld) override;
@@ -41,38 +42,42 @@ public:
 	UFUNCTION(BlueprintPure, Category = "OWT|Snapping")
 	FOWTGizmoSnapSettings GetGizmoSnapSettings() const;
 
-	bool InitializeToolsContext();
-	void ShowSelectionGizmo();
-	void ToggleEditing();
-	bool IsEditingEnabled() const;
-	bool HasGizmoCapture() const;
-	void ShutdownToolsContext();
-	void HideSelectionGizmo();
-	void SetSelectedObject(AActor* Actor);
-	void SetCoordinateSystem(EToolContextCoordinateSystem System);
-	void SetTransformGizmoMode(EToolContextTransformGizmoMode Mode);
-	void RegisterAttributeEditor(AVTBAttributeEditor* Editor);
-	void SynchronizeSelectionGizmo();
-	void TerminateGizmoCapture();
-
 	UFUNCTION(BlueprintPure, Category = "OWT|Editing")
 	AVTBAttributeEditor* GetAttributeEditor() const;
 
+	bool InitializeToolsContext();
+	void ShowSelectionGizmo();
+	void ToggleEditing();
+	void SynchronizeSelectionGizmo();
+	void ShutdownToolsContext();
+	void HideSelectionGizmo();
+	void TerminateGizmoCapture();
+	void RegisterAttributeEditor(AVTBAttributeEditor* Editor);
+
+	void SetSelectedObject(AActor* Actor);
+	void SetCoordinateSystem(EToolContextCoordinateSystem System);
+	void SetTransformGizmoMode(EToolContextTransformGizmoMode Mode);
+
+	bool IsEditingEnabled() const;
+	bool HasGizmoCapture() const;
 	UVTBOWTEditorToolsContext* GetToolsContext() const;
 	UCombinedTransformGizmo* GetTransformGizmo() const;
 	UTransformProxy* GetTransformProxy() const;
 	EToolContextCoordinateSystem GetCoordinateSystem() const;
 	EToolContextTransformGizmoMode GetTransformGizmoMode() const;
+	UOWTAttributeEditMode* GetAttributeEditMode() const;
 
 private:
-	void UpdateGizmoView();
+	void InitializeDefaultMode();
+	void RegisterSystemContextHandlers();
 	void NotifyEditorStateChanged();
-	void OnGizmoEditStarted(UTransformProxy* Proxy);
-	void OnGizmoTransformChanged(UTransformProxy* Proxy, FTransform Transform);
-	void OnGizmoEditEnded(UTransformProxy* Proxy);
 	bool RouteGizmoPointer(const FOWTGizmoPointerContext& Pointer);
+	UOWTAttributeEditTool* FindAttributeTool() const;
 
 public:
+	UPROPERTY(Config, EditAnywhere, Category = "OWT|Editing")
+	TSubclassOf<UOWTAttributeEditMode> DefaultModeClass;
+
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "OWT|Editing")
 	TObjectPtr<UObject> ActiveEditMode;
 
@@ -80,16 +85,6 @@ public:
 	TWeakObjectPtr<AActor> SelectedObject;
 
 private:
-	UPROPERTY(Transient)
-	TObjectPtr<UVTBOWTEditorToolsContext> ToolsContext;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UVTBOWTBaseTransformGizmo> TransformGizmo;
-
 	TWeakObjectPtr<AVTBAttributeEditor> AttributeEditor;
-	TWeakObjectPtr<USceneComponent> GizmoTarget;
 	TMap<const UScriptStruct*, TFunction<bool(const FInstancedStruct&)>> SystemContextHandlers;
-	EToolContextCoordinateSystem CoordinateSystem;
-	EToolContextTransformGizmoMode TransformGizmoMode;
-	bool bEditingEnabled;
 };

@@ -143,6 +143,9 @@ bool FOWTAttributeRuntimeTest::RunTest(const FString& Parameters)
 	Hub->SetSelectedObject(Target);
 	const FTransform OriginalTransform = Target->GetActorTransform();
 	TestTrue(TEXT("Native Actor duplication accepted"), Editor->RequestDuplicate(Editor->GetSnapshot()));
+	TestEqual(TEXT("Acceptance leaves the source selected until the tool ticks"), Hub->SelectedObject.Get(),
+	          static_cast<AActor*>(Target));
+	Hub->Tick(0.016f);
 	AActor* Duplicate = Hub->SelectedObject.Get();
 	if (TestNotNull(TEXT("Duplicate selected"), Duplicate))
 	{
@@ -154,12 +157,15 @@ bool FOWTAttributeRuntimeTest::RunTest(const FString& Parameters)
 		         Duplicate->GetActorLocation().Equals(Target->GetActorLocation() + FVector(100, 0, 0)));
 		TestEqual(TEXT("Duplicate world X after offset"), Duplicate->GetActorLocation().X,
 		          Target->GetActorLocation().X + 100.0);
-		TestEqual(TEXT("Duplicate world Y after offset"), Duplicate->GetActorLocation().Y, Target->GetActorLocation().Y);
-		TestEqual(TEXT("Duplicate world Z after offset"), Duplicate->GetActorLocation().Z, Target->GetActorLocation().Z);
+		TestEqual(TEXT("Duplicate world Y after offset"), Duplicate->GetActorLocation().Y,
+		          Target->GetActorLocation().Y);
+		TestEqual(TEXT("Duplicate world Z after offset"), Duplicate->GetActorLocation().Z,
+		          Target->GetActorLocation().Z);
 		TestTrue(TEXT("Original transform preserved"), Target->GetActorTransform().Equals(OriginalTransform));
 		TestTrue(TEXT("New duplicate reports changes"), Editor->GetSnapshot().bHasChanges);
 	}
 
+	Hub->Tick(0.016f);
 	UClass* CubeClass =
 	    LoadClass<AActor>(nullptr, TEXT("/Game/VTBOWT/Blueprints/BP_OWTEditableCube.BP_OWTEditableCube_C"));
 	if (TestNotNull(TEXT("Cooked BP sample class"), CubeClass))
@@ -172,6 +178,7 @@ bool FOWTAttributeRuntimeTest::RunTest(const FString& Parameters)
 			BlueprintActor->Tags.Add(TEXT("RuntimeInstanceValue"));
 			Hub->SetSelectedObject(BlueprintActor);
 			TestTrue(TEXT("BP instance duplication accepted"), Editor->RequestDuplicate(Editor->GetSnapshot()));
+			Hub->Tick(0.016f);
 			AActor* BPCopy = Hub->SelectedObject.Get();
 			if (TestNotNull(TEXT("BP copy selected"), BPCopy))
 			{

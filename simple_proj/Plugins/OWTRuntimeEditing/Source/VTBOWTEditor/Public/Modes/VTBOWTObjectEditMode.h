@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Context/OWTEditContexts.h"
 #include "Interfaces/OWTEditContextReceiver.h"
+#include "Modes/OWTAttributeEditMode.h"
 #include "VTBOWTObjectEditMode.generated.h"
 
 struct FOWTResolvedContextHandler;
@@ -30,7 +31,7 @@ public:
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class VTBOWTEDITOR_API UVTBOWTObjectEditMode : public UObject, public IOWTEditContextReceiver
+class VTBOWTEDITOR_API UVTBOWTObjectEditMode : public UOWTAttributeEditMode
 {
 	GENERATED_BODY()
 

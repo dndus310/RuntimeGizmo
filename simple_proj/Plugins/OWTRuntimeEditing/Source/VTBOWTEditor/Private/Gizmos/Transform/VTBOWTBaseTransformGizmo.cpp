@@ -66,7 +66,10 @@ private:
 UInteractiveGizmo* UVTBOWTBaseTransformGizmoBuilder::BuildGizmo(const FToolBuilderState& SceneState) const
 {
 	// The subsystem registers this builder only after the runtime context is initialized.
-	check(SceneState.World && SceneState.ToolManager && SceneState.GizmoManager);
+	check(SceneState.World);
+	check(SceneState.ToolManager);
+	check(SceneState.GizmoManager);
+
 	UGizmoViewContext* ViewContext = SceneState.ToolManager->GetContextObjectStore()->FindContext<UGizmoViewContext>();
 	check(ViewContext);
 	UMaterialInterface* Material = LoadObject<UMaterialInterface>(

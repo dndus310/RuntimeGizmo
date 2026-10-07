@@ -1,15 +1,18 @@
 {
   "FileVersion": 3,
-  "Version": 2,
-  "VersionName": "2.0",
+  "Version": 3,
+  "VersionName": "3.0",
   "FriendlyName": "OWT Runtime Editing",
-  "Description": "Owner-scoped JSON events, runtime actor duplication and an observable attribute editor.",
+  "Description": "Runtime ITF attribute tools, owned JSON events and PCG-aware hierarchy duplication.",
   "Category": "Runtime",
   "CanContainContent": true,
   "Modules": [
     { "Name": "OWTEventCore", "Type": "Runtime", "LoadingPhase": "Default" },
-    { "Name": "OWTRuntimeDuplication", "Type": "Runtime", "LoadingPhase": "Default" },
     { "Name": "VTBOWTEditor", "Type": "Runtime", "LoadingPhase": "Default" }
   ],
-  "Plugins": [{ "Name": "EnhancedInput", "Enabled": true }]
+  "Plugins": [
+    { "Name": "OWTStateMonitor", "Enabled": true },
+    { "Name": "EnhancedInput", "Enabled": true },
+    { "Name": "PCG", "Enabled": true }
+  ]
 }

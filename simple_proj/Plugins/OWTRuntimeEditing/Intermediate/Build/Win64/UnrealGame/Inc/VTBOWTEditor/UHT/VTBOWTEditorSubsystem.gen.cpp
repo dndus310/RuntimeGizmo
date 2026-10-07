@@ -13,16 +13,16 @@ static_assert(!UE_WITH_CONSTINIT_UOBJECT, "This generated code can only be compi
 void EmptyLinkFunctionForGeneratedCodeVTBOWTEditorSubsystem() {}
 
 // ********** Begin Cross Module References ********************************************************
+COREUOBJECT_API UClass* Z_Construct_UClass_UClass_NoRegister();
 COREUOBJECT_API UClass* Z_Construct_UClass_UObject_NoRegister();
 ENGINE_API UClass* Z_Construct_UClass_AActor_NoRegister();
 ENGINE_API UClass* Z_Construct_UClass_UTickableWorldSubsystem();
 UPackage* Z_Construct_UPackage__Script_VTBOWTEditor();
 VTBOWTEDITOR_API UClass* Z_Construct_UClass_AVTBAttributeEditor_NoRegister();
+VTBOWTEDITOR_API UClass* Z_Construct_UClass_UOWTAttributeEditMode_NoRegister();
 VTBOWTEDITOR_API UClass* Z_Construct_UClass_UOWTEditContextReceiver_NoRegister();
-VTBOWTEDITOR_API UClass* Z_Construct_UClass_UVTBOWTBaseTransformGizmo_NoRegister();
 VTBOWTEDITOR_API UClass* Z_Construct_UClass_UVTBOWTEditorSubsystem();
 VTBOWTEDITOR_API UClass* Z_Construct_UClass_UVTBOWTEditorSubsystem_NoRegister();
-VTBOWTEDITOR_API UClass* Z_Construct_UClass_UVTBOWTEditorToolsContext_NoRegister();
 VTBOWTEDITOR_API UScriptStruct* Z_Construct_UScriptStruct_FOWTGizmoSnapSettings();
 // ********** End Cross Module References **********************************************************
 
@@ -290,6 +290,10 @@ struct Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics
 		{ "IncludePath", "VTBOWTEditorSubsystem.h" },
 		{ "ModuleRelativePath", "Public/VTBOWTEditorSubsystem.h" },
 	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_DefaultModeClass_MetaData[] = {
+		{ "Category", "OWT|Editing" },
+		{ "ModuleRelativePath", "Public/VTBOWTEditorSubsystem.h" },
+	};
 	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_ActiveEditMode_MetaData[] = {
 		{ "Category", "OWT|Editing" },
 		{ "ModuleRelativePath", "Public/VTBOWTEditorSubsystem.h" },
@@ -298,19 +302,12 @@ struct Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics
 		{ "Category", "OWT|Editing" },
 		{ "ModuleRelativePath", "Public/VTBOWTEditorSubsystem.h" },
 	};
-	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_ToolsContext_MetaData[] = {
-		{ "ModuleRelativePath", "Public/VTBOWTEditorSubsystem.h" },
-	};
-	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_TransformGizmo_MetaData[] = {
-		{ "ModuleRelativePath", "Public/VTBOWTEditorSubsystem.h" },
-	};
 #endif // WITH_METADATA
 
 // ********** Begin Class UVTBOWTEditorSubsystem constinit property declarations *******************
+	static const UECodeGen_Private::FClassPropertyParams NewProp_DefaultModeClass;
 	static const UECodeGen_Private::FObjectPropertyParams NewProp_ActiveEditMode;
 	static const UECodeGen_Private::FWeakObjectPropertyParams NewProp_SelectedObject;
-	static const UECodeGen_Private::FObjectPropertyParams NewProp_ToolsContext;
-	static const UECodeGen_Private::FObjectPropertyParams NewProp_TransformGizmo;
 	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
 // ********** End Class UVTBOWTEditorSubsystem constinit property declarations *********************
 	static constexpr UE::CodeGen::FClassNativeFunction Funcs[] = {
@@ -335,15 +332,13 @@ struct Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics
 }; // struct Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics
 
 // ********** Begin Class UVTBOWTEditorSubsystem Property Definitions ******************************
+const UECodeGen_Private::FClassPropertyParams Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::NewProp_DefaultModeClass = { "DefaultModeClass", nullptr, (EPropertyFlags)0x0014000000004001, UECodeGen_Private::EPropertyGenFlags::Class, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(UVTBOWTEditorSubsystem, DefaultModeClass), Z_Construct_UClass_UClass_NoRegister, Z_Construct_UClass_UOWTAttributeEditMode_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_DefaultModeClass_MetaData), NewProp_DefaultModeClass_MetaData) };
 const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::NewProp_ActiveEditMode = { "ActiveEditMode", nullptr, (EPropertyFlags)0x0114000000002014, UECodeGen_Private::EPropertyGenFlags::Object | UECodeGen_Private::EPropertyGenFlags::ObjectPtr, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(UVTBOWTEditorSubsystem, ActiveEditMode), Z_Construct_UClass_UObject_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_ActiveEditMode_MetaData), NewProp_ActiveEditMode_MetaData) };
 const UECodeGen_Private::FWeakObjectPropertyParams Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::NewProp_SelectedObject = { "SelectedObject", nullptr, (EPropertyFlags)0x0014000000002014, UECodeGen_Private::EPropertyGenFlags::WeakObject, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(UVTBOWTEditorSubsystem, SelectedObject), Z_Construct_UClass_AActor_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_SelectedObject_MetaData), NewProp_SelectedObject_MetaData) };
-const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::NewProp_ToolsContext = { "ToolsContext", nullptr, (EPropertyFlags)0x0144000000002000, UECodeGen_Private::EPropertyGenFlags::Object | UECodeGen_Private::EPropertyGenFlags::ObjectPtr, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(UVTBOWTEditorSubsystem, ToolsContext), Z_Construct_UClass_UVTBOWTEditorToolsContext_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_ToolsContext_MetaData), NewProp_ToolsContext_MetaData) };
-const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::NewProp_TransformGizmo = { "TransformGizmo", nullptr, (EPropertyFlags)0x0144000000002000, UECodeGen_Private::EPropertyGenFlags::Object | UECodeGen_Private::EPropertyGenFlags::ObjectPtr, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(UVTBOWTEditorSubsystem, TransformGizmo), Z_Construct_UClass_UVTBOWTBaseTransformGizmo_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_TransformGizmo_MetaData), NewProp_TransformGizmo_MetaData) };
 const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::PropPointers[] = {
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::NewProp_DefaultModeClass,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::NewProp_ActiveEditMode,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::NewProp_SelectedObject,
-	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::NewProp_ToolsContext,
-	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::NewProp_TransformGizmo,
 };
 static_assert(UE_ARRAY_COUNT(Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::PropPointers) < 2048);
 // ********** End Class UVTBOWTEditorSubsystem Property Definitions ********************************
@@ -357,7 +352,7 @@ const UECodeGen_Private::FImplementedInterfaceParams Z_Construct_UClass_UVTBOWTE
 };
 const UECodeGen_Private::FClassParams Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::ClassParams = {
 	&UVTBOWTEditorSubsystem::StaticClass,
-	nullptr,
+	"Game",
 	&StaticCppClassTypeInfo,
 	DependentSingletons,
 	FuncInfo,
@@ -367,7 +362,7 @@ const UECodeGen_Private::FClassParams Z_Construct_UClass_UVTBOWTEditorSubsystem_
 	UE_ARRAY_COUNT(FuncInfo),
 	UE_ARRAY_COUNT(Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::PropPointers),
 	UE_ARRAY_COUNT(InterfaceParams),
-	0x001000A0u,
+	0x001000A4u,
 	METADATA_PARAMS(UE_ARRAY_COUNT(Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::Class_MetaDataParams), Z_Construct_UClass_UVTBOWTEditorSubsystem_Statics::Class_MetaDataParams)
 };
 void UVTBOWTEditorSubsystem::StaticRegisterNativesUVTBOWTEditorSubsystem()
@@ -391,10 +386,10 @@ UVTBOWTEditorSubsystem::~UVTBOWTEditorSubsystem() {}
 struct Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBOWTEditorSubsystem_h__Script_VTBOWTEditor_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
-		{ Z_Construct_UClass_UVTBOWTEditorSubsystem, UVTBOWTEditorSubsystem::StaticClass, TEXT("UVTBOWTEditorSubsystem"), &Z_Registration_Info_UClass_UVTBOWTEditorSubsystem, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UVTBOWTEditorSubsystem), 2787357554U) },
+		{ Z_Construct_UClass_UVTBOWTEditorSubsystem, UVTBOWTEditorSubsystem::StaticClass, TEXT("UVTBOWTEditorSubsystem"), &Z_Registration_Info_UClass_UVTBOWTEditorSubsystem, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UVTBOWTEditorSubsystem), 1097693591U) },
 	};
 }; // Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBOWTEditorSubsystem_h__Script_VTBOWTEditor_Statics 
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBOWTEditorSubsystem_h__Script_VTBOWTEditor_4234487166{
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBOWTEditorSubsystem_h__Script_VTBOWTEditor_1752251311{
 	TEXT("/Script/VTBOWTEditor"),
 	Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBOWTEditorSubsystem_h__Script_VTBOWTEditor_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Users_jkyii_Desktop_New1006_RuntimeGizmo_Version_4_simple_proj_Plugins_OWTRuntimeEditing_Source_VTBOWTEditor_Public_VTBOWTEditorSubsystem_h__Script_VTBOWTEditor_Statics::ClassInfo),
 	nullptr, 0,

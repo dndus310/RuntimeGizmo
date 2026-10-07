@@ -7,6 +7,7 @@
 #include "VTBOWTEditorGameState.h"
 #include "VTBOWTSpectator.h"
 #include "VTBOWTEditorSubsystem.h"
+#include "Rendering/OWTRuntimeToolsHUD.h"
 
 AVTBOWTEditorGameMode::AVTBOWTEditorGameMode() : AttributeEditor(nullptr)
 {
@@ -15,6 +16,7 @@ AVTBOWTEditorGameMode::AVTBOWTEditorGameMode() : AttributeEditor(nullptr)
 	SpectatorClass = AVTBOWTSpectator::StaticClass();
 	// Use the editing spectator as the possessed pawn during normal Play as well.
 	DefaultPawnClass = SpectatorClass;
+	HUDClass = AOWTRuntimeToolsHUD::StaticClass();
 }
 
 AVTBAttributeEditor* AVTBOWTEditorGameMode::GetAttributeEditor_Implementation()

@@ -1,0 +1,22 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\source\\owtstatemonitor\\private\\tests\\owtstatemonitorviewtests.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\intermediate\\build\\win64\\x64\\simple_projeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.valexpapi.cpp20.h.pch",
+        "Includes": [
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\owtstatemonitor\\definitions.owtstatemonitor.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\source\\owtstatemonitor\\public\\sowtstatemonitor.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\source\\owtstatemonitor\\public\\owtstatemonitormodel.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\source\\owtstatemonitor\\private\\tests\\owtstatemonitortesttypes.h",
+            "c:\\users\\jkyii\\desktop\\new1006\\runtimegizmo-version_4\\simple_proj\\plugins\\owtstatemonitor\\intermediate\\build\\win64\\unrealeditor\\inc\\owtstatemonitor\\uht\\owtstatemonitortesttypes.generated.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slate\\public\\widgets\\input\\smultilineeditabletextbox.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slate\\public\\widgets\\text\\smultilineeditabletext.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slate\\public\\framework\\text\\slatetextlayoutfactory.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slate\\public\\framework\\text\\slatetextlayout.h",
+            "c:\\program files\\epic games\\ue_5.7\\engine\\source\\runtime\\slate\\public\\widgets\\input\\ssearchbox.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

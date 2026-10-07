@@ -1,5 +1,6 @@
 #include "CreateOWTInputCommandlet.h"
 #include "OWTGizmoValidation.h"
+#include "OWTPCGFixtureAsset.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "EdGraphSchema_K2.h"
 #include "Engine/Blueprint.h"
@@ -622,6 +623,10 @@ UCreateOWTInputCommandlet::UCreateOWTInputCommandlet()
 int32 UCreateOWTInputCommandlet::Main(const FString& Params)
 {
 	using namespace OWTInputAssets;
+	if (FParse::Param(*Params, TEXT("CreatePCGFixture")))
+	{
+		return CreateOWTPCGFixtureAssets() ? 0 : 1;
+	}
 	const bool bValidateOnly = FParse::Param(*Params, TEXT("ValidateOnly"));
 	TArray<UInputAction*> Actions;
 	UInputMappingContext* IMC = nullptr;

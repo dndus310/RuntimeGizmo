@@ -26,7 +26,15 @@ namespace
 {
 FStructProperty* FindContextParameter(UFunction* Function, const UScriptStruct* ContextType)
 {
-	if (!Function || Function->NumParms != 1 || Function->HasAnyFunctionFlags(FUNC_Static | FUNC_Net))
+	if (!Function)
+	{
+		return nullptr;
+	}
+	if (Function->NumParms != 1)
+	{
+		return nullptr;
+	}
+	if (Function->HasAnyFunctionFlags(FUNC_Static | FUNC_Net))
 	{
 		return nullptr;
 	}
@@ -39,10 +47,24 @@ FStructProperty* FindContextParameter(UFunction* Function, const UScriptStruct* 
 		}
 
 		FStructProperty* Parameter = CastField<FStructProperty>(*It);
-		if (!Parameter || Parameter->Struct != ContextType || Parameter->HasAnyPropertyFlags(CPF_ReturnParm) ||
-		    (Parameter->HasAnyPropertyFlags(CPF_OutParm) && !Parameter->HasAnyPropertyFlags(CPF_ConstParm)))
+		if (!Parameter)
 		{
 			return nullptr;
+		}
+		if (Parameter->Struct != ContextType)
+		{
+			return nullptr;
+		}
+		if (Parameter->HasAnyPropertyFlags(CPF_ReturnParm))
+		{
+			return nullptr;
+		}
+		if (Parameter->HasAnyPropertyFlags(CPF_OutParm))
+		{
+			if (!Parameter->HasAnyPropertyFlags(CPF_ConstParm))
+			{
+				return nullptr;
+			}
 		}
 
 		return Parameter;
@@ -85,13 +107,15 @@ void UVTBOWTObjectEditMode::InitializeContextBindings_Implementation()
 	BindContext<FOWTRedoContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, Redo));
 	BindContext<FOWTToggleCoordinateSystemContext>(
 	    this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, ToggleCoordinateSystem));
-	BindContext<FOWTToggleTransformSplineContext>(this,
-	                                              GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, ToggleTransformSpline));
+	BindContext<FOWTToggleTransformSplineContext>(
+	    this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, ToggleTransformSpline));
 	BindContext<FOWTSetTranslationContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, SetTranslation));
 	BindContext<FOWTSetRotationContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, SetRotation));
 	BindContext<FOWTSetScaleContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, SetScale));
-	BindContext<FOWTHideSelectionGizmoContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, HideSelectionGizmo));
-	BindContext<FOWTDuplicateSelectionContext>(this, GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, DuplicateSelection));
+	BindContext<FOWTHideSelectionGizmoContext>(this,
+	                                           GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, HideSelectionGizmo));
+	BindContext<FOWTDuplicateSelectionContext>(this,
+	                                           GET_FUNCTION_NAME_CHECKED(UVTBOWTObjectEditMode, DuplicateSelection));
 }
 
 bool UVTBOWTObjectEditMode::BindContextHandler(UScriptStruct* ContextType, UObject* Receiver, FName FunctionName)
@@ -100,7 +124,11 @@ bool UVTBOWTObjectEditMode::BindContextHandler(UScriptStruct* ContextType, UObje
 
 	// This fallible registration API may be used to probe compatibility.
 	// Invalid external registrations are rejected without an assertion.
-	if (!ContextType || !IsValid(Receiver))
+	if (!ContextType)
+	{
+		return false;
+	}
+	if (!IsValid(Receiver))
 	{
 		return false;
 	}
@@ -119,13 +147,13 @@ bool UVTBOWTObjectEditMode::BindContextHandler(UScriptStruct* ContextType, UObje
 
 void UVTBOWTObjectEditMode::SelectObject_Implementation(const FOWTSelectObjectContext& Context)
 {
-	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
-	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
+	UVTBOWTEditorSubsystem* Hub = GetTypedOuter<UVTBOWTEditorSubsystem>();
+	if (!ensureMsgf(Hub, TEXT("OWT object edit mode requires an owning editor subsystem.")))
 	{
 		return;
 	}
 
-	Subsystem->SetSelectedObject(Context.SelectedObject.Get());
+	Hub->SetSelectedObject(Context.SelectedObject.Get());
 }
 
 void UVTBOWTObjectEditMode::Undo_Implementation(const FOWTUndoContext& Context)
@@ -138,15 +166,15 @@ void UVTBOWTObjectEditMode::Redo_Implementation(const FOWTRedoContext& Context)
 
 void UVTBOWTObjectEditMode::ToggleCoordinateSystem_Implementation(const FOWTToggleCoordinateSystemContext& Context)
 {
-	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
-	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
+	UVTBOWTEditorSubsystem* Hub = GetTypedOuter<UVTBOWTEditorSubsystem>();
+	if (!ensureMsgf(Hub, TEXT("OWT object edit mode requires an owning editor subsystem.")))
 	{
 		return;
 	}
 
-	Subsystem->SetCoordinateSystem(Subsystem->GetCoordinateSystem() == EToolContextCoordinateSystem::World
-	                                   ? EToolContextCoordinateSystem::Local
-	                                   : EToolContextCoordinateSystem::World);
+	Hub->SetCoordinateSystem(Hub->GetCoordinateSystem() == EToolContextCoordinateSystem::World
+	                             ? EToolContextCoordinateSystem::Local
+	                             : EToolContextCoordinateSystem::World);
 }
 
 void UVTBOWTObjectEditMode::ToggleTransformSpline_Implementation(const FOWTToggleTransformSplineContext& Context)
@@ -155,9 +183,9 @@ void UVTBOWTObjectEditMode::ToggleTransformSpline_Implementation(const FOWTToggl
 
 void UVTBOWTObjectEditMode::DuplicateSelection_Implementation(const FOWTDuplicateSelectionContext& Context)
 {
-	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
-	checkf(Subsystem, TEXT("OWT object mode requires an owning editor subsystem."));
-	AVTBAttributeEditor* Editor = Subsystem->GetAttributeEditor();
+	UVTBOWTEditorSubsystem* Hub = GetTypedOuter<UVTBOWTEditorSubsystem>();
+	checkf(Hub, TEXT("OWT object mode requires an owning editor subsystem."));
+	AVTBAttributeEditor* Editor = Hub->GetAttributeEditor();
 	if (!Editor)
 	{
 		return;
@@ -167,13 +195,13 @@ void UVTBOWTObjectEditMode::DuplicateSelection_Implementation(const FOWTDuplicat
 
 void UVTBOWTObjectEditMode::HideSelectionGizmo_Implementation(const FOWTHideSelectionGizmoContext& Context)
 {
-	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
-	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
+	UVTBOWTEditorSubsystem* Hub = GetTypedOuter<UVTBOWTEditorSubsystem>();
+	if (!ensureMsgf(Hub, TEXT("OWT object edit mode requires an owning editor subsystem.")))
 	{
 		return;
 	}
 
-	Subsystem->HideSelectionGizmo();
+	Hub->HideSelectionGizmo();
 }
 
 bool UVTBOWTObjectEditMode::UnbindContextHandler(UScriptStruct* ContextType)
@@ -193,35 +221,35 @@ bool UVTBOWTObjectEditMode::UnbindContextHandler(UScriptStruct* ContextType)
 
 void UVTBOWTObjectEditMode::SetTranslation_Implementation(const FOWTSetTranslationContext& Context)
 {
-	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
-	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
+	UVTBOWTEditorSubsystem* Hub = GetTypedOuter<UVTBOWTEditorSubsystem>();
+	if (!ensureMsgf(Hub, TEXT("OWT object edit mode requires an owning editor subsystem.")))
 	{
 		return;
 	}
 
-	Subsystem->SetTransformGizmoMode(EToolContextTransformGizmoMode::Translation);
+	Hub->SetTransformGizmoMode(EToolContextTransformGizmoMode::Translation);
 }
 
 void UVTBOWTObjectEditMode::SetRotation_Implementation(const FOWTSetRotationContext& Context)
 {
-	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
-	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
+	UVTBOWTEditorSubsystem* Hub = GetTypedOuter<UVTBOWTEditorSubsystem>();
+	if (!ensureMsgf(Hub, TEXT("OWT object edit mode requires an owning editor subsystem.")))
 	{
 		return;
 	}
 
-	Subsystem->SetTransformGizmoMode(EToolContextTransformGizmoMode::Rotation);
+	Hub->SetTransformGizmoMode(EToolContextTransformGizmoMode::Rotation);
 }
 
 void UVTBOWTObjectEditMode::SetScale_Implementation(const FOWTSetScaleContext& Context)
 {
-	UVTBOWTEditorSubsystem* Subsystem = GetTypedOuter<UVTBOWTEditorSubsystem>();
-	if (!ensureMsgf(Subsystem, TEXT("OWT object edit mode requires an owning editor subsystem.")))
+	UVTBOWTEditorSubsystem* Hub = GetTypedOuter<UVTBOWTEditorSubsystem>();
+	if (!ensureMsgf(Hub, TEXT("OWT object edit mode requires an owning editor subsystem.")))
 	{
 		return;
 	}
 
-	Subsystem->SetTransformGizmoMode(EToolContextTransformGizmoMode::Scale);
+	Hub->SetTransformGizmoMode(EToolContextTransformGizmoMode::Scale);
 }
 
 void UVTBOWTObjectEditMode::EnsureContextBindings()
@@ -266,7 +294,7 @@ FOWTResolvedContextHandler UVTBOWTObjectEditMode::ResolveContextHandler(const US
 }
 
 void UVTBOWTObjectEditMode::InvokeContextHandler(const FInstancedStruct& Context,
-                                              const FOWTResolvedContextHandler& Handler) const
+                                                 const FOWTResolvedContextHandler& Handler) const
 {
 	FStructOnScope Parameters(Handler.Function);
 	uint8* ParameterMemory = Parameters.GetStructMemory();

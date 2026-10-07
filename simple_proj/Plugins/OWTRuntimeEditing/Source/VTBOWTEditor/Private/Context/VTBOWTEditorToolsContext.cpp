@@ -11,6 +11,7 @@
 #include "Context/VTBOWTSceneSnappingManager.h"
 #include "ContextObjectStore.h"
 #include "InputRouter.h"
+#include "Modes/OWTAttributeEditMode.h"
 
 namespace
 {
@@ -34,13 +35,23 @@ public:
 		State.ToolManager = Context.ToolManager;
 		State.GizmoManager = Context.GizmoManager;
 		State.TargetManager = Context.TargetManager;
-		if (AActor* Actor = Owner.SelectedObject.Get())
+
+		UOWTAttributeEditMode* Mode = Owner.GetAttributeEditMode();
+		if (!Mode)
 		{
-			State.SelectedActors.Add(Actor);
-			if (USceneComponent* Root = Actor->GetRootComponent())
-			{
-				State.SelectedComponents.Add(Root);
-			}
+			return;
+		}
+
+		AActor* Actor = Mode->GetSelectedObject();
+		if (!Actor)
+		{
+			return;
+		}
+
+		State.SelectedActors.Add(Actor);
+		if (USceneComponent* Root = Actor->GetRootComponent())
+		{
+			State.SelectedComponents.Add(Root);
 		}
 	}
 
@@ -111,6 +122,10 @@ private:
 class FOWTToolsTransactions : public IToolsContextTransactionsAPI
 {
 public:
+	explicit FOWTToolsTransactions(UVTBOWTEditorSubsystem& InOwner) : Owner(InOwner)
+	{
+	}
+
 	virtual void DisplayMessage(const FText& Message, EToolMessageLevel Level) override
 	{
 		UE_LOG(LogTemp, Display, TEXT("OWT Tools: %s"), *Message.ToString());
@@ -136,9 +151,37 @@ public:
 
 	virtual bool RequestSelectionChange(const FSelectedObjectsChangeList& Change) override
 	{
-		// Selection enters through the edit-context interface.
-		return false;
+		UOWTAttributeEditMode* Mode = Owner.GetAttributeEditMode();
+		if (!Mode)
+		{
+			return false;
+		}
+		if (Change.ModificationType == ESelectedObjectsModificationType::Clear)
+		{
+			return Mode->SetSelectedObject(nullptr);
+		}
+		if (Change.Actors.Num() > 1)
+		{
+			return false;
+		}
+		if (!Change.Components.IsEmpty())
+		{
+			return false;
+		}
+		AActor* Actor = Change.Actors.IsEmpty() ? nullptr : Change.Actors[0];
+		if (Change.ModificationType == ESelectedObjectsModificationType::Remove)
+		{
+			if (Actor != Mode->GetSelectedObject())
+			{
+				return true;
+			}
+			return Mode->SetSelectedObject(nullptr);
+		}
+		return Mode->SetSelectedObject(Actor);
 	}
+
+private:
+	UVTBOWTEditorSubsystem& Owner;
 };
 } // namespace
 
@@ -155,7 +198,7 @@ void UVTBOWTEditorToolsContext::InitializeContext(UVTBOWTEditorSubsystem& Subsys
 	}
 
 	Queries = MakeUnique<FOWTToolsQueries>(*this, Subsystem);
-	Transactions = MakeUnique<FOWTToolsTransactions>();
+	Transactions = MakeUnique<FOWTToolsTransactions>(Subsystem);
 	Super::Initialize(Queries.Get(), Transactions.Get());
 	ContextObjectStore->AddContextObject(NewObject<UVTBOWTSceneSnappingManager>(this));
 	bInitialized = true;
@@ -184,9 +227,27 @@ bool UVTBOWTEditorToolsContext::IsInitialized() const
 bool UVTBOWTEditorToolsContext::SetSnapSettings(const FOWTGizmoSnapSettings& Settings)
 {
 	check(IsInGameThread());
-	if (!FMath::IsFinite(Settings.TranslationStep) || Settings.TranslationStep <= UE_SMALL_NUMBER ||
-	    !FMath::IsFinite(Settings.RotationStepDegrees) || Settings.RotationStepDegrees <= UE_SMALL_NUMBER ||
-	    !FMath::IsFinite(Settings.ScaleStep) || Settings.ScaleStep <= UE_SMALL_NUMBER)
+	if (!FMath::IsFinite(Settings.TranslationStep))
+	{
+		return false;
+	}
+	if (Settings.TranslationStep <= UE_SMALL_NUMBER)
+	{
+		return false;
+	}
+	if (!FMath::IsFinite(Settings.RotationStepDegrees))
+	{
+		return false;
+	}
+	if (Settings.RotationStepDegrees <= UE_SMALL_NUMBER)
+	{
+		return false;
+	}
+	if (!FMath::IsFinite(Settings.ScaleStep))
+	{
+		return false;
+	}
+	if (Settings.ScaleStep <= UE_SMALL_NUMBER)
 	{
 		return false;
 	}

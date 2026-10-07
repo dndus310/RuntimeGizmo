@@ -34,33 +34,45 @@ public:
 	/** The center must have been created with Owner as its direct Outer. */
 	UFUNCTION(BlueprintCallable, Category = "OWT|Events")
 	bool Initialize(UObject* Owner);
+
 	UFUNCTION(BlueprintCallable, Category = "OWT|Events")
 	FGuid SubscribeDynamic(UObject* Receiver, const FOWTAttributeEventDynamic& Callback);
+
 	/** Valid JSON only; a non-empty Recipient targets one subscription. Maximum payload: 65536 characters. */
 	UFUNCTION(BlueprintCallable, Category = "OWT|Events")
 	bool Publish(FName Event, const FString& Json, FGuid Recipient = FGuid());
+
 	/** Journal without delivering. Malformed and truncated input remain visible for request diagnostics. */
 	UFUNCTION(BlueprintCallable, Category = "OWT|Events")
 	bool RecordEvent(FName Event, const FString& Json, EOWTEventDirection Direction = EOWTEventDirection::Inbound,
 	                 FGuid Recipient = FGuid());
+
 	UFUNCTION(BlueprintCallable, Category = "OWT|Events")
 	void Shutdown();
+
 	UFUNCTION(BlueprintCallable, Category = "OWT|Events")
 	bool Unsubscribe(FGuid Handle);
+
 	UFUNCTION(BlueprintCallable, Category = "OWT|Events")
 	void ClearEventHistory();
+
 	UFUNCTION(BlueprintCallable, Category = "OWT|Events")
 	void SetHistoryCapacity(int32 Capacity);
+
 	UFUNCTION(BlueprintPure, Category = "OWT|Events")
 	bool IsReady() const;
+
 	/** Latest MaximumCount records, returned oldest to newest. */
 	UFUNCTION(BlueprintPure, Category = "OWT|Events")
 	TArray<FOWTEventRecord> GetRecentEvents(int32 MaximumCount = 256) const;
+
 	UFUNCTION(BlueprintPure, Category = "OWT|Events")
 	int64 GetLatestSequence() const;
+
 	/** Changes on append, clear and capacity changes, including when no events are retained. */
 	UFUNCTION(BlueprintPure, Category = "OWT|Events")
 	int64 GetHistoryRevision() const;
+
 	UFUNCTION(BlueprintPure, Category = "OWT|Events")
 	int32 GetHistoryCapacity() const;
 
@@ -75,6 +87,7 @@ private:
 	bool CanSubscribe(UObject* Receiver) const;
 	static bool IsValidJson(const FString& Json);
 
+private:
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UObject> OwnerObject;
 
