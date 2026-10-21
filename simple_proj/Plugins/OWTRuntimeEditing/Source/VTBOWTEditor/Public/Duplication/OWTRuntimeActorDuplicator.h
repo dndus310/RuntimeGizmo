@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Duplication/OWTDuplicationAdapter.h"
+#include "Duplication/OWTDuplicationResult.h"
 #include "UObject/Object.h"
 #include "OWTRuntimeActorDuplicator.generated.h"
 
@@ -16,6 +17,9 @@ class AActor;
  * Procedural execution remains suppressed until that commit. Construction runs normally.
  * Engine lifecycle, delegates, timers and opaque native/simulation state are not
  * snapshots. Implement IOWTRuntimeDuplicationParticipant for class-specific native configuration restoration.
+ *
+ * Most callers do not need this object directly: UOWTDuplicationLibrary and UOWTDuplicationSubsystem own one
+ * per world. Create one yourself only when duplication must follow a specific session's lifetime and registry.
  */
 UCLASS(BlueprintType)
 class VTBOWTEDITOR_API UOWTRuntimeActorDuplicator : public UObject
@@ -24,7 +28,6 @@ class VTBOWTEDITOR_API UOWTRuntimeActorDuplicator : public UObject
 
 public:
 	UOWTRuntimeActorDuplicator();
-
 	virtual UWorld* GetWorld() const override;
 	virtual void BeginDestroy() override;
 
@@ -38,16 +41,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "OWT|Runtime Duplication")
 	void Deinitialize();
 
+	/** Duplicates Source and reports every created Actor. Nothing remains in the world when it fails. */
+	FOWTDuplicationResult Duplicate(AActor* Source, const FOWTDuplicationOptions& Options, const FGuid& OperationId);
+	/** Runs every validation and capture step of Duplicate without spawning anything. */
+	bool CanDuplicate(AActor* Source, const FOWTDuplicationOptions& Options, FString& OutError);
 	AActor* DuplicateActorWithOptions(AActor* Source, const FOWTDuplicationOptions& Options, const FGuid& OperationId,
 	                                  FString& OutError);
 	void Tick(float DeltaTime);
-
 	TArray<FOWTProceduralComponentSnapshot> GetProceduralComponents() const;
 	FOWTDuplicationAdapterRegistry& GetAdapterRegistry();
 
 private:
 	void RegisterAdapterProviders();
-
+	/** Request-level checks that do not depend on the source hierarchy. */
+	bool ValidateRequest(AActor* Source, const FOWTDuplicationOptions& Options, FString& OutError) const;
 	void CommitAdapters(TArray<TUniquePtr<IOWTDuplicationAdapter>>& Adapters,
 	                    const TMap<UObject*, UObject*>& CompleteMapping, AActor& Result,
 	                    const FOWTDuplicationOptions& Options, const FGuid& OperationId);

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Duplication/OWTDuplicationRequest.h"
 #include "Duplication/OWTDuplicationPropertyPolicy.h"
+#include "Duplication/OWTDuplicationSourceRules.h"
 #include "State/OWTEditingSessionTypes.h"
 
 class AActor;
@@ -14,12 +15,27 @@ enum class EOWTDuplicationAdapterRole : uint8
 	Auxiliary
 };
 
-/** One adapter instance belongs to one operation. It never mutates the source. */
+/**
+ * Class-specific duplication behavior for state the reflected core cannot copy on its own.
+ * One adapter instance belongs to one operation and never mutates the source.
+ *
+ * Vocabulary used by the core:
+ * - Authored: user-made configuration that is copied.
+ * - Managed: output an adapter regenerates (for example PCG resources). It is never copied and must not be referenced.
+ * - Owned: a property or object whose copy the adapter performs instead of the core. Only primaries may own.
+ *
+ * Callbacks arrive in this order: Initialize -> ValidateObject -> CaptureObject -> VisitCapturedReferences ->
+ * ValidateReferences -> PrepareDestination -> Restore -> PrepareCommit -> Commit, or Rollback on failure.
+ * Committed adapters that report procedural components keep receiving Tick until Shutdown.
+ * Lighter extension points exist: FOWTDuplicationPropertyPolicySet for property inclusion,
+ * FOWTDuplicationSourceRuleSet for source admission and IOWTRuntimeDuplicationParticipant for own classes.
+ */
 class VTBOWTEDITOR_API IOWTDuplicationAdapter
 {
 public:
 	IOWTDuplicationAdapter();
 	virtual ~IOWTDuplicationAdapter() = default;
+	/** Validation and capture of authored subjects. Actor overloads are a convenience for Actor-registered adapters. */
 	virtual bool ValidateObject(const UObject& Object, FString& Error) const;
 	virtual bool CaptureObject(UObject& Object, FString& Error);
 	virtual bool Initialize(UWorld& World, FString& Error)
@@ -38,6 +54,7 @@ public:
 	{
 		return true;
 	}
+	/** Ownership claims. A claimed property or object is skipped by the reflected core. */
 	virtual bool OwnsProperty(const UObject& Object, const FProperty& Property) const
 	{
 		return false;
@@ -46,9 +63,11 @@ public:
 	{
 		return false;
 	}
+	/** Reports references held by captured state so the core can capture owned instanced objects they reach. */
 	virtual void VisitCapturedReferences(TFunctionRef<void(UObject*&, bool)> Visitor)
 	{
 	}
+	/** Reconstruction. Mapping translates every captured source object to its duplicate. */
 	virtual void PrepareDestination(UObject& Destination)
 	{
 	}
@@ -60,6 +79,7 @@ public:
 	{
 		return true;
 	}
+	/** Transaction. PrepareCommit runs before OnAuthoredCommitted, Commit after it. Rollback replaces both on failure. */
 	virtual void PrepareCommit(const FGuid& OperationId, const FOWTDuplicationOptions& Options,
 	                           const TMap<UObject*, UObject*>& Mapping)
 	{
@@ -71,6 +91,7 @@ public:
 	virtual void Rollback(const TMap<UObject*, UObject*>& Mapping)
 	{
 	}
+	/** Observation after commit. The duplicator keeps an adapter alive while it reports procedural components. */
 	virtual void Tick(float DeltaTime)
 	{
 	}
@@ -96,7 +117,7 @@ private:
 	bool bCapturedSubjects;
 };
 
-/** Class-keyed factories, held by the owning editing session rather than a global mutable singleton. */
+/** Class-keyed factories and rules, held by the owning editing session rather than a global mutable singleton. */
 class VTBOWTEDITOR_API FOWTDuplicationAdapterRegistry
 {
 public:
@@ -105,10 +126,10 @@ public:
 	              EOWTDuplicationAdapterRole Role = EOWTDuplicationAdapterRole::Primary);
 	void Unregister(UClass* SupportedClass, EOWTDuplicationAdapterRole Role = EOWTDuplicationAdapterRole::Primary);
 	TArray<TUniquePtr<IOWTDuplicationAdapter>> CreateAdapters() const;
-
 	FOWTDuplicationPropertyPolicySet& GetPropertyPolicies();
-
 	const FOWTDuplicationPropertyPolicySet& GetPropertyPolicies() const;
+	FOWTDuplicationSourceRuleSet& GetSourceRules();
+	const FOWTDuplicationSourceRuleSet& GetSourceRules() const;
 
 private:
 	struct FRegistration
@@ -123,4 +144,5 @@ private:
 	};
 	TArray<FRegistration> Registrations;
 	FOWTDuplicationPropertyPolicySet PropertyPolicies;
+	FOWTDuplicationSourceRuleSet SourceRules;
 };

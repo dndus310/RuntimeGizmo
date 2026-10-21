@@ -10,10 +10,7 @@ class VTBOWTEDITOR_API IOWTDuplicationAdapterProvider : public IModularFeature
 {
 public:
 	virtual ~IOWTDuplicationAdapterProvider();
-
 	virtual FName GetProviderId() const = 0;
-
 	virtual void RegisterAdapters(FOWTDuplicationAdapterRegistry& Registry) const = 0;
-
 	static FName GetFeatureName();
 };

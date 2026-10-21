@@ -1,24 +1,24 @@
-#include "Duplication/OWTDuplicationRestoreComponent.h"
+#include "Duplication/Restore/OWTRestoreHookComponent.h"
 
-UOWTDuplicationRestoreComponent::UOWTDuplicationRestoreComponent() : RestoreCallback()
+UOWTRestoreHookComponent::UOWTRestoreHookComponent() : RestoreCallback()
 {
 	bWantsInitializeComponent = true;
 	bAutoActivate = false;
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UOWTDuplicationRestoreComponent::InitializeComponent()
+void UOWTRestoreHookComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 	Restore();
 }
 
-void UOWTDuplicationRestoreComponent::SetRestoreCallback(TFunction<void()> Callback)
+void UOWTRestoreHookComponent::SetRestoreCallback(TFunction<void()> Callback)
 {
 	RestoreCallback = MoveTemp(Callback);
 }
 
-void UOWTDuplicationRestoreComponent::Restore()
+void UOWTRestoreHookComponent::Restore()
 {
 	// Clear the stored callback before invoking it. Component registration can reenter initialization.
 	TFunction<void()> Callback = MoveTemp(RestoreCallback);

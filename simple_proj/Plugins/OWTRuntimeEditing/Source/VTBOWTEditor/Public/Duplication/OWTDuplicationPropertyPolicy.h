@@ -11,9 +11,7 @@ public:
 	using FRule = TFunction<TOptional<bool>(const UObject&, const FProperty&)>;
 
 	bool Register(UClass* SupportedClass, FRule Rule);
-
 	void Unregister(UClass* SupportedClass);
-
 	TOptional<bool> Resolve(const UObject& Object, const FProperty& Property) const;
 
 private:

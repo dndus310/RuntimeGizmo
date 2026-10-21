@@ -5,7 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Duplication/OWTRuntimeActorDuplicator.h"
-#include "Duplication/OWTPCGComponentConfiguration.h"
+#include "Duplication/PCG/OWTPCGAuthoredProperties.h"
 #include "Elements/PCGCreatePoints.h"
 #include "Elements/PCGStaticMeshSpawner.h"
 #include "Engine/Engine.h"
@@ -120,7 +120,7 @@ bool FOWTPCGReflectedConfigurationTest::RunTest(const FString& Parameters)
 	Source.WorkingValue = 91;
 	Source.InternalValue = 93;
 	FOWTPCGConfigurationTestSchema Copy;
-	OWTPCGConfiguration::CopyAuthoredProperties(*FOWTPCGConfigurationTestSchema::StaticStruct(), &Source, &Copy);
+	FOWTPCGAuthoredProperties::Copy(*FOWTPCGConfigurationTestSchema::StaticStruct(), &Source, &Copy);
 	TestEqual(TEXT("A future authored field is copied from the schema"), Copy.FutureSetting, Source.FutureSetting);
 	TestTrue(TEXT("Future authored containers are copied"), Copy.FutureWeights == Source.FutureWeights);
 	TestTrue(TEXT("Future reference values remain available for the remapping phase"), Copy.FutureReference == Source.FutureReference);
@@ -135,7 +135,7 @@ bool FOWTPCGReflectedConfigurationTest::RunTest(const FString& Parameters)
 	SourcePCG->Seed = 441;
 	SourcePCG->bGenerated = true;
 	UPCGGraphInstance* DestinationGraph = CopiedPCG->GetGraphInstance();
-	OWTPCGConfiguration::CopyAuthoredProperties(*UPCGComponent::StaticClass(), SourcePCG.Get(), CopiedPCG.Get());
+	FOWTPCGAuthoredProperties::Copy(*UPCGComponent::StaticClass(), SourcePCG.Get(), CopiedPCG.Get());
 	TestEqual(TEXT("Actual PCG authoring field follows the same transfer"), CopiedPCG->Seed, 441);
 	TestFalse(TEXT("Actual PCG generated state is never restored from source"), CopiedPCG->bGenerated);
 	TestTrue(TEXT("Owned GraphInstance stays under the engine lifecycle contract"), CopiedPCG->GetGraphInstance() == DestinationGraph);

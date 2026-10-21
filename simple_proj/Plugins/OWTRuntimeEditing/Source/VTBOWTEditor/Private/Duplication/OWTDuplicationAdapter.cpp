@@ -8,44 +8,28 @@ IOWTDuplicationAdapter::IOWTDuplicationAdapter() : Role(EOWTDuplicationAdapterRo
 
 bool IOWTDuplicationAdapter::ValidateObject(const UObject& Object, FString& Error) const
 {
-	if (const AActor* Actor = Cast<AActor>(&Object))
-	{
-		return ValidateActor(*Actor, Error);
-	}
-	return true;
+	const AActor* Actor = Cast<AActor>(&Object);
+	return !Actor || ValidateActor(*Actor, Error);
 }
 
 bool IOWTDuplicationAdapter::CaptureObject(UObject& Object, FString& Error)
 {
-	if (AActor* Actor = Cast<AActor>(&Object))
-	{
-		return CaptureActor(*Actor, Error);
-	}
-	return true;
+	AActor* Actor = Cast<AActor>(&Object);
+	return !Actor || CaptureActor(*Actor, Error);
 }
 
 bool IOWTDuplicationAdapter::AcceptsObject(const UObject& Object) const
 {
 	const UClass* Class = RegisteredClass.Get();
-	if (!Class)
-	{
-		return false;
-	}
-	if (!Object.IsA(Class))
-	{
-		return false;
-	}
-	for (const TWeakObjectPtr<UClass>& MoreSpecific : MoreSpecificClasses)
-	{
-		if (const UClass* Subclass = MoreSpecific.Get())
-		{
-			if (Object.IsA(Subclass))
-			{
-				return false;
-			}
-		}
-	}
-	return true;
+	const bool bMatchesRegisteredClass = Class && Object.IsA(Class);
+	// A more specific primary registration shadows this one for its subclasses.
+	const bool bShadowed = bMatchesRegisteredClass && MoreSpecificClasses.ContainsByPredicate(
+	    [&Object](const TWeakObjectPtr<UClass>& MoreSpecific)
+	    {
+		    const UClass* Subclass = MoreSpecific.Get();
+		    return Subclass && Object.IsA(Subclass);
+	    });
+	return bMatchesRegisteredClass && !bShadowed;
 }
 
 bool IOWTDuplicationAdapter::IsAuxiliary() const
@@ -67,26 +51,19 @@ bool IOWTDuplicationAdapter::HasCapturedSubjects() const
 
 bool FOWTDuplicationAdapterRegistry::Register(UClass* SupportedClass, FFactory Factory, EOWTDuplicationAdapterRole Role)
 {
-	if (!SupportedClass)
+	// One primary and one auxiliary may share a class; a second registration of the same role is rejected.
+	const bool bAlreadyRegistered = Registrations.ContainsByPredicate(
+	    [SupportedClass, Role](const FRegistration& Entry)
+	    {
+		    return Entry.Class == SupportedClass && Entry.Role == Role;
+	    });
+	const bool bCanRegister = SupportedClass && Factory && !bAlreadyRegistered;
+
+	if (bCanRegister)
 	{
-		return false;
+		Registrations.Emplace(SupportedClass, MoveTemp(Factory), Role);
 	}
-	if (!Factory)
-	{
-		return false;
-	}
-	for (const FRegistration& Entry : Registrations)
-	{
-		if (Entry.Class == SupportedClass)
-		{
-			if (Entry.Role == Role)
-			{
-				return false;
-			}
-		}
-	}
-	Registrations.Emplace(SupportedClass, MoveTemp(Factory), Role);
-	return true;
+	return bCanRegister;
 }
 
 void FOWTDuplicationAdapterRegistry::Unregister(UClass* SupportedClass, EOWTDuplicationAdapterRole Role)
@@ -94,11 +71,7 @@ void FOWTDuplicationAdapterRegistry::Unregister(UClass* SupportedClass, EOWTDupl
 	Registrations.RemoveAll(
 	    [SupportedClass, Role](const FRegistration& Entry)
 	    {
-		    if (Entry.Class != SupportedClass)
-		    {
-			    return false;
-		    }
-		    return Entry.Role == Role;
+		    return Entry.Class == SupportedClass && Entry.Role == Role;
 	    });
 }
 
@@ -116,27 +89,15 @@ TArray<TUniquePtr<IOWTDuplicationAdapter>> FOWTDuplicationAdapterRegistry::Creat
 		checkf(Adapter, TEXT("A registered duplication adapter factory must return an instance."));
 		Adapter->RegisteredClass = Class;
 		Adapter->Role = Entry.Role;
-		if (Entry.Role == EOWTDuplicationAdapterRole::Primary)
+		for (const FRegistration& Candidate : Registrations)
 		{
-			for (const FRegistration& Candidate : Registrations)
+			UClass* Subclass = Candidate.Class.Get();
+			const bool bBothPrimary = Entry.Role == EOWTDuplicationAdapterRole::Primary &&
+			                          Candidate.Role == EOWTDuplicationAdapterRole::Primary;
+			const bool bMoreSpecific = Subclass && Subclass != Class && Subclass->IsChildOf(Class);
+			if (bBothPrimary && bMoreSpecific)
 			{
-				if (Candidate.Role != EOWTDuplicationAdapterRole::Primary)
-				{
-					continue;
-				}
-				UClass* Subclass = Candidate.Class.Get();
-				if (!Subclass)
-				{
-					continue;
-				}
-				if (Subclass == Class)
-				{
-					continue;
-				}
-				if (Subclass->IsChildOf(Class))
-				{
-					Adapter->MoreSpecificClasses.Add(Subclass);
-				}
+				Adapter->MoreSpecificClasses.Add(Subclass);
 			}
 		}
 		Result.Add(MoveTemp(Adapter));
@@ -152,4 +113,14 @@ FOWTDuplicationPropertyPolicySet& FOWTDuplicationAdapterRegistry::GetPropertyPol
 const FOWTDuplicationPropertyPolicySet& FOWTDuplicationAdapterRegistry::GetPropertyPolicies() const
 {
 	return PropertyPolicies;
+}
+
+FOWTDuplicationSourceRuleSet& FOWTDuplicationAdapterRegistry::GetSourceRules()
+{
+	return SourceRules;
+}
+
+const FOWTDuplicationSourceRuleSet& FOWTDuplicationAdapterRegistry::GetSourceRules() const
+{
+	return SourceRules;
 }

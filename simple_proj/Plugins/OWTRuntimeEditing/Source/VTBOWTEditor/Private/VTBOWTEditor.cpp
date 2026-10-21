@@ -1,7 +1,8 @@
 #include "VTBOWTEditor.h"
 
-#include "Duplication/OWTBuiltinDuplicationProviders.h"
+#include "Duplication/Engine/OWTEngineDuplicationProvider.h"
 #include "Duplication/OWTDuplicationAdapterProvider.h"
+#include "Duplication/PCG/OWTPCGDuplicationProvider.h"
 #include "Features/IModularFeatures.h"
 
 #define LOCTEXT_NAMESPACE "FVTBOWTEditorModule"
@@ -12,8 +13,8 @@ FVTBOWTEditorModule::~FVTBOWTEditorModule() = default;
 
 void FVTBOWTEditorModule::StartupModule()
 {
-	EngineDuplicationProvider = CreateOWTEngineDuplicationProvider();
-	PCGDuplicationProvider = CreateOWTPCGDuplicationProvider();
+	EngineDuplicationProvider = MakeUnique<FOWTEngineDuplicationProvider>();
+	PCGDuplicationProvider = MakeUnique<FOWTPCGDuplicationProvider>();
 	IModularFeatures& Features = IModularFeatures::Get();
 	Features.RegisterModularFeature(IOWTDuplicationAdapterProvider::GetFeatureName(), EngineDuplicationProvider.Get());
 	Features.RegisterModularFeature(IOWTDuplicationAdapterProvider::GetFeatureName(), PCGDuplicationProvider.Get());

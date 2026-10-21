@@ -2,17 +2,16 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "OWTDuplicationRestoreComponent.generated.h"
+#include "OWTRestoreHookComponent.generated.h"
 
 /** Synchronous bridge between construction and actor initialization. Never retained by the duplicate. */
 UCLASS(Transient, NotBlueprintable)
-class UOWTDuplicationRestoreComponent : public UActorComponent
+class UOWTRestoreHookComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	UOWTDuplicationRestoreComponent();
-
+	UOWTRestoreHookComponent();
 	virtual void InitializeComponent() override;
 	void SetRestoreCallback(TFunction<void()> Callback);
 	void Restore();

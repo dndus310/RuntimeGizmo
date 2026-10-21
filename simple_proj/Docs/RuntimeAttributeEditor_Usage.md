@@ -248,6 +248,8 @@ native GameMode는 `AOWTRuntimeToolsHUD`를 사용해 실제 game viewport의 HU
 
 ## 내부 복제 서비스의 저수준 호환 API
 
+편집 모드 밖에서 복제만 필요하면 `Duplication/OWTDuplicationLibrary.h`의 `UOWTDuplicationLibrary::DuplicateActor`/`DuplicateActorAtOffset`을 사용한다. 월드 서브시스템 `UOWTDuplicationSubsystem`이 duplicator의 초기화·Tick·정리를 맡고 `FOWTDuplicationResult`로 생성된 Actor 전체와 실패 이유를 돌려준다. 사용법과 확장 단계는 `Docs/RuntimeDuplication_Guide.md`에 정리되어 있다.
+
 일반 편집 흐름은 AttributeEditor → AttributeEditMode → Duplicate tool을 사용한다. `VTBOWTEditor`의 `Duplication/OWTRuntimeActorDuplicator.h`에는 기존 소유 UObject 기반 API도 유지한다. 직접 사용할 때는 살아 있는 월드를 제공하는 UObject가 소유하며 정확한 Outer/Owner 일치, `UPROPERTY` 보관, 게임 스레드 호출 규칙을 적용한다. 소유자가 서비스 `Tick`과 종료 `Deinitialize`를 전달해야 procedural 상태를 계속 관찰하고 정리할 수 있다.
 
 ```cpp
@@ -309,7 +311,7 @@ partition/runtime 정책에는 해당 world에 등록된 PCGWorldActor가 필요
 
 생성·cleanup 중인 원본 또는 접근할 수 없는 관리 자원은 `SourceBusy`로 거부한다. PCG managed output을 향한 authored/parameter 참조, opaque native parameter 상태, 소유 graph definition 자체, 생성물 아래 authored 부착은 전용 adapter 없이 얕게 복사하지 않는다. 외부 graph asset과 소유 GraphInstance는 지원하되 임의 native graph 구현 전체를 자동 복제하지 않는다. Construction이 복원 전에 PCG generation이나 cleanup을 직접 시작하는 클래스는 협력하는 초기화/복제 adapter가 필요하다. 대상 Construction에서 시작한 cleanup이 감지되면 `DestinationPCGLifecycleViolation`으로 거부한다. 사용자 코드가 만든 외부 부작용은 rollback 대상이 아니다.
 
-클래스별 확장은 `Duplication/OWTDuplicationAdapter.h`의 `IOWTDuplicationAdapter`와 소유 세션의 registry를 사용한다. `Duplicator->GetAdapterRegistry().Register(SupportedClass, Factory, Role)`로 작업별 adapter factory를 등록하고 `Unregister(SupportedClass, Role)`로 해제한다. `Role` 기본값은 `EOWTDuplicationAdapterRole::Primary`다. 동일 UClass와 Role의 중복 등록은 false를 반환하지만 같은 클래스에 Primary와 Auxiliary를 각각 하나씩 등록할 수 있다.
+클래스별 확장은 `Duplication/OWTDuplicationAdapter.h`의 `IOWTDuplicationAdapter`와 소유 세션의 registry를 사용한다. `Duplicator->GetAdapterRegistry().Register(SupportedClass, Factory, Role)`로 작업별 adapter factory를 등록하고 `Unregister(SupportedClass, Role)`로 해제한다. `Role` 기본값은 `EOWTDuplicationAdapterRole::Primary`다. 동일 UClass와 Role의 중복 등록은 false를 반환하지만 같은 클래스에 Primary와 Auxiliary를 각각 하나씩 등록할 수 있다. 원본 허용 여부는 `GetSourceRules()`의 클래스별 규칙(`FOWTSourceDecision::Allow/Reject/Defer`)이 결정한다. Controller·BSP·PhysicsConstraint·비 StaticMesh 시뮬레이션 등 기본 거부는 엔진 provider가 등록한 규칙이며, 해당 상태를 adapter나 participant로 복원하는 하위 클래스는 `Allow` 규칙으로 덮어쓸 수 있다.
 
 core는 authored Actor와 component마다 상속 관계상 가장 구체적인 Primary 하나와 해당 클래스에 적용되는 모든 Auxiliary를 선택한다. `ValidateObject`/`CaptureObject`를 구현하며 기존 Actor용 `ValidateActor`/`CaptureActor`는 기본 구현을 통해 호출된다. 선택되지 않은 adapter는 world ownership indexing에만 참여하고 capture/restore/commit 대상에서 제외된다. `AcceptsObject`/`IsAuxiliary`는 적용 범위 확인용이며 core의 capture 추적 대신 사용자 capture 구현은 `CaptureObject`에 둔다.
 
