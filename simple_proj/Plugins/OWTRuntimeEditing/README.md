@@ -1,6 +1,6 @@
 # OWT Runtime Editing
 
-Unreal Engine 5.7용 Runtime 플러그인이다. ITF 기반 AttributeEditMode와 등록형 도구, Actor 상태/Transform 편집, 내부 Actor·PCG 계층 복제, Gizmo와 상태 모니터 연결을 제공한다. Pub-Sub은 독립 모듈로 유지하고 상태 뷰어는 별도 `OWTStateMonitor` 플러그인을 사용한다.
+Unreal Engine 5.7용 Runtime 플러그인이다. ITF 기반 AttributeEditMode와 등록형 도구, Actor 상태/Transform 편집, 내부 Actor·PCG 계층 복제, Gizmo와 상태 모니터 연결을 제공한다. Pub-Sub은 독립 모듈로 유지하고 상태 뷰어는 별도 `StateMonitor` 플러그인을 사용한다.
 
 | 모듈 | 용도 |
 |---|---|
@@ -11,9 +11,9 @@ Unreal Engine 5.7용 Runtime 플러그인이다. ITF 기반 AttributeEditMode와
 
 대상 UE5.7 C++ 프로젝트의 `Plugins/OWTRuntimeEditing`에 이 폴더의 **descriptor, Source, Config, Content, README**를 함께 복사한다. Content에는 런타임 Gizmo 재질이 있고 `Config/Engine.ini`에는 이전 모듈 이름의 Core Redirect가 있다. 원본의 Binaries/Intermediate나 샘플 프로젝트 `/Game/VTBOWT`를 복사할 필요는 없다.
 
-`Plugins/OWTStateMonitor`도 함께 설치한다. 이 독립 Runtime 플러그인은 관찰 구조체를 읽어 트리·JSON·변경 이력을 표시하며 AttributeEditor·PCG·Pub-Sub에 의존하지 않는다. 모니터만 사용할 프로젝트에서는 `OWTStateMonitor`만 설치할 수 있다.
+`Plugins/StateMonitor`도 함께 설치한다. 이 독립 Runtime 플러그인은 관찰 구조체를 읽어 트리·JSON·변경 이력을 표시하며 AttributeEditor·PCG·Pub-Sub에 의존하지 않는다. 모니터만 사용할 프로젝트에서는 `StateMonitor`만 설치할 수 있다.
 
-플러그인을 활성화하고 대상 프로젝트의 Editor/Game target을 빌드한다. Enhanced Input·PCG·OWTStateMonitor 의존성은 descriptor에 선언되어 있다. 코드에서 사용하는 모듈을 소비 모듈의 Build.cs에 추가한다.
+플러그인을 활성화하고 대상 프로젝트의 Editor/Game target을 빌드한다. Enhanced Input·PCG·StateMonitor 의존성은 descriptor에 선언되어 있다. 코드에서 사용하는 모듈을 소비 모듈의 Build.cs에 추가한다.
 
 ```csharp
 PrivateDependencyModuleNames.AddRange(new string[]

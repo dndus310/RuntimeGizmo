@@ -23,7 +23,7 @@ public class VTBOWTEditor : ModuleRules
         PrivateDependencyModuleNames.AddRange(
             new string[]
             {
-                "OWTStateMonitor",
+                "StateMonitor",
                 "Slate",
                 "SlateCore",
                 "Json",

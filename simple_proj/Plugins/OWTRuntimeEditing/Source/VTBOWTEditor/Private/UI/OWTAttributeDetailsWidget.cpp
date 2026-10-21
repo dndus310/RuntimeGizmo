@@ -1,8 +1,8 @@
 #include "UI/OWTAttributeDetailsWidget.h"
 
 #include "UI/OWTAttributeMonitorTypes.h"
-#include "OWTStateMonitorModel.h"
-#include "SOWTStateMonitor.h"
+#include "StateMonitorModel.h"
+#include "SStateMonitor.h"
 
 #include "VTBAttributeEditor.h"
 #include "VTBOWTEditorSubsystem.h"
@@ -260,14 +260,14 @@ TSharedRef<SWidget> UOWTAttributeDetailsWidget::BuildMonitor()
 {
 	if (!MonitorModel.IsValid())
 	{
-		FOWTStateMonitorSettings Settings;
+		FStateMonitorSettings Settings;
 		Settings.MaxNodesPerSnapshot = 4096;
 		Settings.MaxTextCharacters = 16384;
-		MonitorModel = MakeShared<FOWTStateMonitorModel>(Settings);
+		MonitorModel = MakeShared<FStateMonitorModel>(Settings);
 	}
 
 	RefreshMonitorState(true);
-	return SAssignNew(MonitorView, SOWTStateMonitor)
+	return SAssignNew(MonitorView, SStateMonitor)
 		.Model(MonitorModel)
 		.Visibility_UObject(this, &UOWTAttributeDetailsWidget::GetMonitorVisibility);
 }

@@ -11,8 +11,8 @@
 class AVTBAttributeEditor;
 class SBorder;
 class SVerticalBox;
-class FOWTStateMonitorModel;
-class SOWTStateMonitor;
+class FStateMonitorModel;
+class SStateMonitor;
 template <typename NumericType>
 class SSpinBox;
 
@@ -162,8 +162,8 @@ private:
 
 	TSharedPtr<SBorder> Panel;
 	TSharedPtr<SVerticalBox> ToolRows;
-	TSharedPtr<FOWTStateMonitorModel> MonitorModel;
-	TSharedPtr<SOWTStateMonitor> MonitorView;
+	TSharedPtr<FStateMonitorModel> MonitorModel;
+	TSharedPtr<SStateMonitor> MonitorView;
 	TArray<TSharedPtr<SSpinBox<double>>> Fields;
 	FOWTAttributeSnapshot Snapshot;
 	FOWTAttributeSnapshot OperationSnapshot;

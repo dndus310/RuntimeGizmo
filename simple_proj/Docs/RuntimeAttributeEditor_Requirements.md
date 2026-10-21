@@ -491,7 +491,7 @@ if (!Subsystem->IsEditingEnabled())
 
 ## 15. 범용 Runtime 상태 모니터 (2026-10-08)
 
-모니터는 `Plugins/OWTStateMonitor`의 독립 Runtime 모듈로 구성한다. 이 모듈은 AttributeEditor·ITF·PCG·이벤트 전송 모듈을 참조하지 않으며, 소비 시스템이 소유하는 `FOWTStateMonitorModel`에 관찰용 구조체 값을 제출한다. `UScriptStruct`와 해당 타입의 구조체 주소를 함께 전달하고 호출 중 reflected 필드를 복사한다. 일반 C++ 구조체에는 자동 필드 열거 계약이 없으므로 `USTRUCT`·`UPROPERTY`를 입력 조건으로 사용한다.
+모니터는 `Plugins/StateMonitor`의 독립 Runtime 모듈로 구성한다. 이 모듈은 AttributeEditor·ITF·PCG·이벤트 전송 모듈을 참조하지 않으며, 소비 시스템이 소유하는 `FStateMonitorModel`에 관찰용 구조체 값을 제출한다. `UScriptStruct`와 해당 타입의 구조체 주소를 함께 전달하고 호출 중 reflected 필드를 복사한다. 일반 C++ 구조체에는 자동 필드 열거 계약이 없으므로 `USTRUCT`·`UPROPERTY`를 입력 조건으로 사용한다.
 
 기본 표시 방식은 필드·타입·값을 비교하기 쉬운 가상화 트리뷰다. 같은 값의 JSON 표현과 복사 기능, source 선택·필드 검색, 변경 전후 값의 이력도 제공한다. 변경 필드는 색상과 기호로 구분하고 이전 값을 tooltip에 표시한다. 이력은 전체 과거 Actor를 유지하는 Undo 스택이 아니라 관찰된 필드 변화의 기록이다. 이력을 일시정지하거나 과거 기록을 선택해도 Current 관찰은 계속되며, 펼침·선택·스크롤 상태를 보존한다.
 
@@ -504,13 +504,13 @@ if (!Subsystem->IsEditingEnabled())
 | 제한 | source·노드·깊이·문자·키 검사·컨테이너 순회·이력 수와 이력 전체 문자 예산. 잘린 상태를 표시하고 거짓 추가/삭제 추론 억제 |
 | History | 필드 경로·이전 값·새 값·sequence 기록. 일시정지는 이력 표시만 동결 |
 | 초기화 | 변경 강조 확인 및 이력 삭제는 모니터 데이터에만 적용. 원본 상태와 이벤트 저널 유지 |
-| C++ 소비 | `SOWTStateMonitor`의 Model 인자로 공유 모델을 주입 |
-| Blueprint 소비 | `UOWTStateMonitorWidget`의 구조체 wildcard Submit Snapshot. UMG 재생성 시 모델 유지 |
+| C++ 소비 | `UStateMonitorSubsystem::Get(this)->Submit(Id, Struct)`로 게임 인스턴스 공유 모델에 제출. 직접 소유가 필요하면 `SStateMonitor`의 Model 인자로 주입 |
+| Blueprint 소비 | `Submit State Snapshot`·`Show State Monitor` 노드(`UStateMonitorLibrary`) 또는 `UStateMonitorWidget`의 Submit Snapshot. `bUseSharedModel`로 공유 모델 표시 |
 | 엔진 경계 | Runtime 모듈만 사용. UnrealEd·프로젝트 콘텐츠 의존성 없음 |
 
 프로젝트 연결은 `UOWTAttributeDetailsWidget`의 작은 adapter에 둔다. `FOWTAttributeMonitorSnapshot`의 Selection·Mode·Tools·DuplicationOperations·ProceduralComponents는 실제 typed 저장소에서 읽는다. 별도 `FOWTAttributeMonitorEvents`의 Journal에는 기존 JSON 이벤트 문자열을 전달한다. Events를 역해석해 Current를 만들지 않는다. 표시 중 약 10Hz로 구조체를 제출하고 Events는 이미 유한 저널이므로 모니터 변경 이력을 중복 저장하지 않는다. F3 진입점과 기존 UI 입력 차단 계약을 유지한다.
 
-설치·C++·Blueprint 사용 예시는 [OWTStateMonitor README](C:/Users/jkyii/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTStateMonitor/README.md)에 기록한다. 모니터의 기본 설정과 이력은 메모리에 있다. Git 설정을 변경하거나 로그 파일을 자동 저장하는 기능은 없다.
+설치·C++·Blueprint 사용 예시는 [StateMonitor README](../Plugins/StateMonitor/README.md)에 기록한다. 모니터의 기본 설정과 이력은 메모리에 있다. Git 설정을 변경하거나 로그 파일을 자동 저장하는 기능은 없다.
 
 ## 16. 복제 정책·Provider 확장 (2026-10-08)
 
@@ -530,7 +530,7 @@ Git에서 개인 PC에만 적용하는 제외 규칙은 `.git/info/exclude`, 팀
 
 ```gitignore
 # 모니터 플러그인 전체를 개인 PC에서 제외할 경우
-/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/OWTStateMonitor/
+/Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Plugins/StateMonitor/
 
 # 해당 프로젝트의 실행 기록·검증 산출물만 제외할 경우
 /Desktop/New1006/RuntimeGizmo-Version_4/simple_proj/Saved/
@@ -541,7 +541,7 @@ Git에서 개인 PC에만 적용하는 제외 규칙은 `.git/info/exclude`, 팀
 프로젝트 폴더 자체를 별도 Git 저장소로 관리하는 환경에서는 규칙이 다음처럼 짧아진다.
 
 ```gitignore
-/Plugins/OWTStateMonitor/
+/Plugins/StateMonitor/
 ```
 
 플러그인 소스는 공유하고 Unreal 생성 파일만 제외하려면 프로젝트의 `.gitignore`에 다음과 같이 지정한다. 맨 앞 `/` 없는 디렉터리 패턴은 플러그인 내부의 같은 생성 디렉터리에도 적용된다.
@@ -557,7 +557,7 @@ Saved/
 이미 추적 중인 플러그인을 앞으로 저장소에서 제외하기로 결정한 경우에는 먼저 ignore 규칙을 추가하고 프로젝트 디렉터리에서 다음 명령을 사용한다. `--cached`는 로컬 파일을 유지하고 Git index에서 제거한다. 변경을 커밋하면 다른 checkout에서도 해당 경로가 저장소에서 제거되므로 플러그인 배포 경로를 별도로 준비해야 한다. [Git rm 공식 문서](https://git-scm.com/docs/git-rm)
 
 ```powershell
-git rm -r --cached -- Plugins/OWTStateMonitor
+git rm -r --cached -- Plugins/StateMonitor
 ```
 
 이번 작업에서는 Git 설정·index·추적 파일을 변경하지 않았다. 현재 확인한 새 모니터 플러그인은 untracked 상태다. 플러그인 전체를 제외할 경우 `OWTRuntimeEditing.uplugin` 및 `VTBOWTEditor.Build.cs`의 의존성이 남으므로 다른 PC/CI에 별도 설치해야 한다. 독립 플러그인 패키지나 별도 저장소로 전달하고 사용 버전을 고정하는 방식을 사용한다.

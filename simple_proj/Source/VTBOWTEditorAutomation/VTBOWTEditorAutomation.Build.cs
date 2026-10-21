@@ -8,7 +8,7 @@ public class VTBOWTEditorAutomation : ModuleRules
         PrivateDependencyModuleNames.AddRange(new[]
         {
             "Core", "CoreUObject", "Engine", "UnrealEd", "BlueprintGraph",
-            "KismetCompiler", "OWTEventCore", "OWTStateMonitor", "UMG", "AssetRegistry", "VTBOWTEditor", "InteractiveToolsFramework", "EnhancedInput", "InputCore", "InputBlueprintNodes", "PCG", "Kismet", "Json", "JsonUtilities", "simple_proj"
+            "KismetCompiler", "OWTEventCore", "StateMonitor", "UMG", "AssetRegistry", "VTBOWTEditor", "InteractiveToolsFramework", "EnhancedInput", "InputCore", "InputBlueprintNodes", "PCG", "Kismet", "Json", "JsonUtilities", "simple_proj"
         });
     }
 }

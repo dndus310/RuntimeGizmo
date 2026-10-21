@@ -4,8 +4,8 @@
 #include "Misc/ScopeExit.h"
 #include "UI/OWTAttributeDetailsWidget.h"
 #include "UI/OWTAttributeMonitorTypes.h"
-#include "OWTStateMonitorModel.h"
-#include "SOWTStateMonitor.h"
+#include "StateMonitorModel.h"
+#include "SStateMonitor.h"
 #include "VTBAttributeEditor.h"
 #include "VTBOWTEditorSubsystem.h"
 #include "Modes/OWTAttributeEditMode.h"
@@ -22,7 +22,7 @@
 
 namespace OWTDetailsContract
 {
-TSharedPtr<FOWTStateMonitorNode> FindNode(const TSharedPtr<FOWTStateMonitorNode>& Node, const FString& Path)
+TSharedPtr<FStateMonitorNode> FindNode(const TSharedPtr<FStateMonitorNode>& Node, const FString& Path)
 {
 	if (!Node.IsValid())
 	{
@@ -32,9 +32,9 @@ TSharedPtr<FOWTStateMonitorNode> FindNode(const TSharedPtr<FOWTStateMonitorNode>
 	{
 		return Node;
 	}
-	for (const TSharedPtr<FOWTStateMonitorNode>& Child : Node->Children)
+	for (const TSharedPtr<FStateMonitorNode>& Child : Node->Children)
 	{
-		TSharedPtr<FOWTStateMonitorNode> Found = FindNode(Child, Path);
+		TSharedPtr<FStateMonitorNode> Found = FindNode(Child, Path);
 		if (Found.IsValid())
 		{
 			return Found;
@@ -146,8 +146,8 @@ bool FOWTAttributeDetailsContractTest::RunTest(const FString& Parameters)
 	Widget->SetMonitorVisible(true);
 	TestTrue(TEXT("Monitor opens through the public widget API"), Widget->IsMonitorVisible());
 	TestTrue(TEXT("Monitor constructs the reusable viewer"), Widget->MonitorView.IsValid());
-	TSharedPtr<FOWTStateMonitorSource> CurrentSource = Widget->MonitorModel->FindSource(TEXT("Current"));
-	TSharedPtr<FOWTStateMonitorSource> EventSource = Widget->MonitorModel->FindSource(TEXT("Events"));
+	TSharedPtr<FStateMonitorSource> CurrentSource = Widget->MonitorModel->FindSource(TEXT("Current"));
+	TSharedPtr<FStateMonitorSource> EventSource = Widget->MonitorModel->FindSource(TEXT("Events"));
 	if (!TestTrue(TEXT("Authoritative state and transport events are separate sources"),
 		CurrentSource.IsValid() && EventSource.IsValid()))
 	{
@@ -277,14 +277,14 @@ bool FOWTAttributeDetailsContractTest::RunTest(const FString& Parameters)
 	ComponentFixture.ProceduralComponents = {Waiting, Ready};
 	Widget->MonitorModel->SubmitSnapshot(TEXT("Contract.Components"), FText::FromString(TEXT("Component contract")),
 		FOWTAttributeMonitorSnapshot::StaticStruct(), &ComponentFixture, false);
-	const TSharedPtr<FOWTStateMonitorSource> Components = Widget->MonitorModel->FindSource(TEXT("Contract.Components"));
+	const TSharedPtr<FStateMonitorSource> Components = Widget->MonitorModel->FindSource(TEXT("Contract.Components"));
 	const FString ComponentStatus = Components->CurrentJson;
 	TestTrue(TEXT("Component monitor retains the waiting reason"), ComponentStatus.Contains(Waiting.Reason));
 	TestTrue(TEXT("Component monitor identifies the waiting component"), ComponentStatus.Contains(Waiting.ComponentName));
 	TestTrue(TEXT("Component monitor identifies the ready component independently"), ComponentStatus.Contains(Ready.ComponentName));
 	TestTrue(TEXT("Component monitor includes graph"), ComponentStatus.Contains(Waiting.GraphPath));
 	TestTrue(TEXT("Component monitor includes trigger"), ComponentStatus.Contains(Waiting.Trigger));
-	const TSharedPtr<FOWTStateMonitorNode> Attempt = OWTDetailsContract::FindNode(Components->Root,
+	const TSharedPtr<FStateMonitorNode> Attempt = OWTDetailsContract::FindNode(Components->Root,
 		TEXT("$/ProceduralComponents/0/GenerationAttempt"));
 	TestTrue(TEXT("Generic reflection retains the generation attempt"), Attempt.IsValid());
 	if (Attempt.IsValid())
